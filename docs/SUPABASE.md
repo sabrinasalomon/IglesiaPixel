@@ -15,11 +15,14 @@ Esta guía conecta la aplicación a una base de datos real. Toma unos 15 minutos
 2. Ejecuta, en este orden y cada uno en su propia consulta, el contenido de los archivos de [`supabase/migrations/`](../supabase/migrations). Copia el archivo completo, pégalo y presiona **Run**. Cada uno debe decir *Success. No rows returned*.
    - [`20261026000001_fase1_esquema.sql`](../supabase/migrations/20261026000001_fase1_esquema.sql): sedes, usuarios, miembros, configuración y horarios.
    - [`20261026000002_fase2_esquema.sql`](../supabase/migrations/20261026000002_fase2_esquema.sql): ministerios, eventos, asistencia y comunicados.
-3. (Opcional) Para tener datos de ejemplo, ejecuta también [`supabase/seed.sql`](../supabase/seed.sql) y después [`supabase/seed_fase2.sql`](../supabase/seed_fase2.sql). Agregan la "Iglesia Comunidad de Fe" con 3 sedes, horarios, miembros, ministerios, eventos de las últimas semanas con su asistencia y algunos anuncios.
+   - [`20261026000003_fase3_esquema.sql`](../supabase/migrations/20261026000003_fase3_esquema.sql): donaciones y aportaciones.
+3. (Opcional) Para tener datos de ejemplo, ejecuta también, en orden, [`seed.sql`](../supabase/seed.sql), [`seed_fase2.sql`](../supabase/seed_fase2.sql) y [`seed_fase3.sql`](../supabase/seed_fase3.sql). Agregan la "Iglesia Comunidad de Fe" con 3 sedes, horarios, miembros, ministerios, eventos de las últimas semanas con su asistencia, algunos anuncios y seis meses de aportaciones.
+
+   Si el editor muestra el aviso *Potential issue detected* al ejecutar un archivo de datos de ejemplo, elige **Run without RLS**: esos archivos no crean tablas, solo agregan filas a tablas que ya tienen su seguridad activada.
 
 > Haz el paso 3 **antes** del paso 5: así el administrador queda asignado automáticamente a la primera sede.
 
-**¿Ya tenías la Fase 1 instalada?** Solo ejecuta `20261026000002_fase2_esquema.sql` y, si usas los datos de ejemplo, `seed_fase2.sql`. No vuelvas a ejecutar los archivos de la Fase 1: fallarían porque las tablas ya existen.
+**¿Ya tenías una fase anterior instalada?** Ejecuta solo los archivos de las fases nuevas (esquema y, si usas los datos de ejemplo, su `seed_faseN.sql`). No vuelvas a ejecutar los anteriores: fallarían porque las tablas ya existen.
 
 ## 3. Cerrar el registro público
 
@@ -74,11 +77,9 @@ En **Registro de miembro vinculado** elige a qué miembro corresponde la cuenta.
 
 El servicio de correo incluido en Supabase solo envía unos pocos correos por hora. Para un proyecto académico alcanza; si necesitas más, configura un SMTP propio en **Project Settings → Authentication → SMTP Settings**.
 
-## Publicar en Vercel (opcional)
+## Publicar en internet
 
-1. En [vercel.com](https://vercel.com) importa el repositorio de GitHub.
-2. En **Environment Variables** agrega las mismas tres variables del paso 6.
-3. Cuando termine el despliegue, actualiza la **Site URL** y las **Redirect URLs** del paso 4 con la dirección de Vercel.
+La guía [DESPLIEGUE.md](DESPLIEGUE.md) explica cómo subir la aplicación a Vercel.
 
 ## Qué protege la base de datos
 
@@ -96,6 +97,7 @@ Las reglas de acceso están en la propia base de datos (Row Level Security), no 
 | Eventos | Toda la sede, incluido el rol Miembro | Administrador; pastor y secretario en su sede; el coordinador, los de su ministerio. Nadie borra: se cancelan |
 | Asistencia | Quien puede gestionar el evento | Igual que eventos |
 | Comunicados | Toda la sede, cuando llega su fecha de publicación (los programados solo los ve quien los gestiona) | Administrador (una sede o todas); pastor y secretario en su sede. El autor lo pone la base de datos |
+| Aportaciones | Administrador; pastor y tesorero de la sede | Administrador; tesorero en su sede. No se editan ni se borran: se anulan, y quien registró lo pone la base de datos |
 
 Las pruebas de estas reglas están en [`supabase/pruebas/`](../supabase/pruebas).
 

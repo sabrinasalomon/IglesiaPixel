@@ -31,7 +31,6 @@ interface Enlace {
   texto: string;
   icono: React.ReactNode;
   visible: (rol: Rol) => boolean;
-  fase?: number; // fase en la que el módulo se conecta a Supabase (ya conectado si se omite)
 }
 
 const porModulo = (m: Modulo) => (rol: Rol) => puedeVer(rol, m);
@@ -43,16 +42,16 @@ const ENLACES: Enlace[] = [
   { href: "/asistencia", texto: "Asistencia", icono: <ClipboardCheck size={18} />, visible: porModulo("asistencia") },
   { href: "/eventos", texto: "Eventos", icono: <CalendarDays size={18} />, visible: porModulo("eventos") },
   { href: "/ministerios", texto: "Ministerios", icono: <UsersRound size={18} />, visible: porModulo("ministerios") },
-  { href: "/donaciones", texto: "Donaciones", icono: <HandCoins size={18} />, visible: porModulo("donaciones"), fase: 3 },
+  { href: "/donaciones", texto: "Donaciones", icono: <HandCoins size={18} />, visible: porModulo("donaciones") },
   { href: "/comunicados", texto: "Comunicados", icono: <Megaphone size={18} />, visible: (r) => r !== "miembro" && puedeVer(r, "comunicados") },
-  { href: "/reportes", texto: "Reportes", icono: <BarChart3 size={18} />, visible: porModulo("reportes"), fase: 3 },
+  { href: "/reportes", texto: "Reportes", icono: <BarChart3 size={18} />, visible: porModulo("reportes") },
   { href: "/usuarios", texto: "Usuarios", icono: <UserCog size={18} />, visible: porModulo("usuarios") },
   { href: "/sedes", texto: "Sedes", icono: <Building2 size={18} />, visible: porModulo("sedes") },
   { href: "/configuracion", texto: "Configuración", icono: <Settings size={18} />, visible: porModulo("configuracion") },
 ];
 
 export default function LayoutApp({ children }: { children: React.ReactNode }) {
-  const { usuario, db, modo, sedeId, cambiarSede, cerrarSesion } = useDatos();
+  const { usuario, db, sedeId, cambiarSede, cerrarSesion } = useDatos();
   const router = useRouter();
   const ruta = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -80,8 +79,6 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
 
   const enlaces = ENLACES.filter((e) => e.visible(usuario.rol));
   const sede = db.sedes.find((s) => s.id === sedeId);
-  // En modo Supabase, los módulos de fases siguientes aún no tienen datos reales
-  const pendiente = modo === "supabase" ? ENLACES.find((e) => ruta.startsWith(e.href) && (e.fase ?? 1) > 1) : undefined;
 
   if (!sede && !(usuario.rol === "administrador" && ruta.startsWith("/sedes"))) {
     return usuario.rol === "administrador" ? (
@@ -118,9 +115,6 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
               >
                 {e.icono}
                 {e.texto}
-                {modo === "supabase" && (e.fase ?? 1) > 1 && (
-                  <span className="ml-auto rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400">Fase {e.fase}</span>
-                )}
               </Link>
             </li>
           );
@@ -169,16 +163,7 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main className="mx-auto max-w-7xl px-4 py-6 lg:px-8">
-          {pendiente ? (
-            <Tarjeta className="p-10 text-center">
-              <p className="font-medium text-slate-800">{pendiente.texto} se conecta a la base de datos en la Fase {pendiente.fase}</p>
-              <p className="mt-1 text-sm text-slate-500">
-                Mientras tanto puedes ver cómo funcionará en el modo demostración (sin variables de Supabase).
-              </p>
-            </Tarjeta>
-          ) : (
-            children
-          )}
+          {children}
         </main>
       </div>
     </div>

@@ -142,5 +142,17 @@ export function repositorioDemo(
         return listo();
       },
     },
+    aportaciones: {
+      listar: async (sedeId) => leer().aportaciones.filter((a) => a.sedeId === sedeId),
+      crear: (sedeId, d) => {
+        const registradoPor = usuarioActual()?.id ?? "";
+        actualizar((db) => ({ ...db, aportaciones: [...db.aportaciones, { id: nuevoId("a"), sedeId, registradoPor, ...d }] }));
+        return listo();
+      },
+      cambiarAnulada: (id, anulada) => {
+        actualizar((db) => ({ ...db, aportaciones: db.aportaciones.map((a) => (a.id === id ? { ...a, anulada } : a)) }));
+        return listo();
+      },
+    },
   };
 }

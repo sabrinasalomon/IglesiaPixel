@@ -1,27 +1,39 @@
 "use client";
 
 import { Lock, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, td, th } from "@/components/ui";
+import { useCallback, useMemo, useState } from "react";
+import { Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
 import { CONCEPTOS, METODOS } from "@/lib/catalogos";
 import { fechaCorta, mesCorto, mxn } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
-import { nuevoId, useDatos, useSede } from "@/lib/store";
-import type { ConceptoAportacion, MetodoPago } from "@/lib/types";
+import { useDatos } from "@/lib/store";
+import type { Aportacion, ConceptoAportacion, MetodoPago, Miembro } from "@/lib/types";
+import { intentar, useCarga } from "@/lib/usar-carga";
 
 export default function Donaciones() {
-  const { usuario, actualizar, sedeId, hoy } = useDatos();
-  const { aportaciones, miembros } = useSede();
+  const { usuario, repo, sedeId, hoy } = useDatos();
+  const permiso = acceso(usuario!.rol, "donaciones");
+  const cargar = useCallback(async () => {
+    if (!permiso) return { todas: [], miembros: [] };
+    const [todas, miembros] = await Promise.all([repo.aportaciones.listar(sedeId), repo.miembros.listar(sedeId)]);
+    return { todas, miembros };
+  }, [repo, sedeId, permiso]);
+  const { datos, cargando, error, recargar } = useCarga<{ todas: Aportacion[]; miembros: Miembro[] }>(cargar, { todas: [], miembros: [] });
+  const { todas, miembros } = datos;
+  // Las anuladas se muestran en la lista pero no suman
+  const aportaciones = useMemo(() => todas.filter((a) => !a.anulada), [todas]);
   const [desde, setDesde] = useState(`${hoy.slice(0, 7)}-01`);
   const [hasta, setHasta] = useState(hoy);
   const [form, setForm] = useState<{ fecha: string; monto: string; concepto: ConceptoAportacion; metodo: MetodoPago; miembroId: string; anonima: boolean } | null>(null);
+  const [errorForm, setErrorForm] = useState("");
+  const [errorAccion, setErrorAccion] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
-  const permiso = acceso(usuario!.rol, "donaciones");
-
-  const enPeriodo = useMemo(
-    () => aportaciones.filter((a) => a.fecha >= desde && a.fecha <= hasta).sort((a, b) => b.fecha.localeCompare(a.fecha)),
-    [aportaciones, desde, hasta]
+  const movimientos = useMemo(
+    () => todas.filter((a) => a.fecha >= desde && a.fecha <= hasta).sort((a, b) => b.fecha.localeCompare(a.fecha)),
+    [todas, desde, hasta]
   );
+  const enPeriodo = useMemo(() => movimientos.filter((a) => !a.anulada), [movimientos]);
 
   const porConcepto = useMemo(() => {
     const t = new Map<string, number>();
@@ -50,25 +62,31 @@ export default function Donaciones() {
   const total = enPeriodo.reduce((s, a) => s + a.monto, 0);
   const nombre = (id?: string) => (id ? miembros.find((m) => m.id === id)?.nombre : undefined);
 
-  const guardar = () => {
-    if (!form || !(Number(form.monto) > 0)) return;
-    actualizar((db) => ({
-      ...db,
-      aportaciones: [
-        ...db.aportaciones,
-        {
-          id: nuevoId("a"),
-          sedeId,
-          fecha: form.fecha,
-          monto: Number(form.monto),
-          concepto: form.concepto,
-          metodo: form.metodo,
-          miembroId: form.anonima || !form.miembroId ? undefined : form.miembroId,
-          registradoPor: usuario!.id,
-        },
-      ],
-    }));
+  const guardar = async () => {
+    if (!form) return;
+    const monto = Math.round(Number(form.monto) * 100) / 100;
+    if (!(monto > 0)) return setErrorForm("Escribe un monto mayor a cero.");
+    if (!form.fecha) return setErrorForm("Indica la fecha.");
+    setGuardando(true);
+    const fallo = await intentar(() =>
+      repo.aportaciones.crear(sedeId, {
+        fecha: form.fecha,
+        monto,
+        concepto: form.concepto,
+        metodo: form.metodo,
+        miembroId: form.anonima || !form.miembroId ? undefined : form.miembroId,
+      })
+    );
+    setGuardando(false);
+    if (fallo) return setErrorForm(fallo);
     setForm(null);
+    recargar();
+  };
+
+  // Una aportación con error no se borra: se anula y se registra de nuevo
+  const alternarAnulada = async (a: Aportacion) => {
+    setErrorAccion(await intentar(() => repo.aportaciones.cambiarAnulada(a.id, !a.anulada)));
+    recargar();
   };
 
   return (
@@ -78,7 +96,7 @@ export default function Donaciones() {
         descripcion="Información financiera restringida a administración, pastor y tesorería"
         acciones={
           puedeRegistrar && (
-            <Boton onClick={() => setForm({ fecha: hoy, monto: "", concepto: "Diezmo", metodo: "Efectivo", miembroId: "", anonima: false })}>
+            <Boton onClick={() => { setErrorForm(""); setForm({ fecha: hoy, monto: "", concepto: "Diezmo", metodo: "Efectivo", miembroId: "", anonima: false }); }}>
               <Plus size={16} /> Registrar aportación
             </Boton>
           )
@@ -89,6 +107,7 @@ export default function Donaciones() {
           <Lock size={14} /> Tienes acceso de solo lectura.
         </p>
       )}
+      {(error || errorAccion) && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorAccion}</p>}
 
       <Tarjeta className="mb-4 flex flex-wrap items-end gap-3 p-4">
         <Campo etiqueta="Desde"><Entrada type="date" value={desde} onChange={(e) => setDesde(e.target.value)} /></Campo>
@@ -106,20 +125,31 @@ export default function Donaciones() {
           <div className="max-h-[520px] overflow-y-auto">
             <Tabla>
               <thead>
-                <tr><th className={th}>Fecha</th><th className={th}>Concepto</th><th className={th}>Aportante</th><th className={th}>Método</th><th className={`${th} text-right`}>Monto</th></tr>
+                <tr>
+                  <th className={th}>Fecha</th><th className={th}>Concepto</th><th className={th}>Aportante</th><th className={th}>Método</th><th className={`${th} text-right`}>Monto</th>
+                  {puedeRegistrar && <th className={th}></th>}
+                </tr>
               </thead>
               <tbody>
-                {enPeriodo.map((a) => (
-                  <tr key={a.id}>
+                {movimientos.map((a) => (
+                  <tr key={a.id} className={a.anulada ? "text-slate-400" : ""}>
                     <td className={td}>{fechaCorta(a.fecha)}</td>
-                    <td className={td}>{a.concepto}</td>
+                    <td className={td}>{a.concepto} {a.anulada && <Etiqueta tono="rojo">Anulada</Etiqueta>}</td>
                     <td className={td}>{nombre(a.miembroId) ?? <Etiqueta>Anónimo</Etiqueta>}</td>
                     <td className={td}>{a.metodo}</td>
-                    <td className={`${td} text-right font-medium`}>{mxn(a.monto)}</td>
+                    <td className={`${td} text-right font-medium ${a.anulada ? "line-through" : ""}`}>{mxn(a.monto)}</td>
+                    {puedeRegistrar && (
+                      <td className={`${td} text-right`}>
+                        <button className="text-xs text-slate-500 hover:text-red-600" onClick={() => alternarAnulada(a)}>
+                          {a.anulada ? "Restaurar" : "Anular"}
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </Tabla>
+            {cargando ? <Vacio>Cargando…</Vacio> : movimientos.length === 0 && <Vacio>No hay aportaciones en este periodo.</Vacio>}
           </div>
         </Tarjeta>
 
@@ -159,13 +189,13 @@ export default function Donaciones() {
         titulo="Registrar aportación"
         abierto={!!form}
         alCerrar={() => setForm(null)}
-        pie={<><Boton variante="secundario" onClick={() => setForm(null)}>Cancelar</Boton><Boton onClick={guardar}>Guardar</Boton></>}
+        pie={<><Boton variante="secundario" onClick={() => setForm(null)}>Cancelar</Boton><Boton disabled={guardando} onClick={guardar}>Guardar</Boton></>}
       >
         {form && (
           <>
             <div className="grid gap-4 sm:grid-cols-2">
               <Campo etiqueta="Fecha"><Entrada type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} /></Campo>
-              <Campo etiqueta="Monto (MXN)"><Entrada type="number" min="1" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} /></Campo>
+              <Campo etiqueta="Monto (MXN)"><Entrada type="number" min="1" step="0.01" value={form.monto} onChange={(e) => setForm({ ...form, monto: e.target.value })} /></Campo>
               <Campo etiqueta="Concepto">
                 <Selector value={form.concepto} onChange={(e) => setForm({ ...form, concepto: e.target.value as ConceptoAportacion })}>
                   {CONCEPTOS.map((c) => <option key={c}>{c}</option>)}
@@ -185,10 +215,11 @@ export default function Donaciones() {
               <Campo etiqueta="Aportante (opcional)">
                 <Selector value={form.miembroId} onChange={(e) => setForm({ ...form, miembroId: e.target.value })}>
                   <option value="">Sin asociar</option>
-                  {miembros.map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+                  {miembros.filter((m) => m.activo).map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
                 </Selector>
               </Campo>
             )}
+            {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
           </>
         )}
       </Modal>

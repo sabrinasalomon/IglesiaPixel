@@ -1,5 +1,6 @@
 import type {
   Anuncio,
+  Aportacion,
   Asistencia,
   ConfiguracionIglesia,
   Evento,
@@ -11,8 +12,8 @@ import type {
   Usuario,
 } from "../types";
 
-// Operaciones de datos de los módulos conectados (Fases 1 y 2). Hay dos
-// implementaciones: una sobre los datos de demostración y otra sobre Supabase.
+// Operaciones de datos de todos los módulos. Hay dos implementaciones: una
+// sobre los datos de demostración y otra sobre Supabase.
 
 export type DatosMiembro = Pick<Miembro, "nombre" | "telefono" | "correo" | "fechaIngreso">;
 export type DatosSede = Pick<Sede, "nombre" | "direccion" | "telefono" | "correo">;
@@ -28,6 +29,7 @@ export type CambiosUsuario = Partial<Pick<Usuario, "rol" | "sedeId" | "activo" |
 export type DatosEvento = Omit<Evento, "id" | "sedeId" | "cancelado">;
 export type DatosMinisterio = Pick<Ministerio, "nombre" | "descripcion" | "coordinadorId">;
 export type DatosAnuncio = Pick<Anuncio, "titulo" | "contenido" | "fechaPublicacion" | "importante" | "sedeId">;
+export type DatosAportacion = Pick<Aportacion, "fecha" | "monto" | "concepto" | "metodo" | "miembroId">;
 
 export interface Repositorio {
   miembros: {
@@ -78,5 +80,11 @@ export interface Repositorio {
     crear(datos: DatosAnuncio): Promise<void>;
     editar(id: string, datos: DatosAnuncio): Promise<void>;
     eliminar(id: string): Promise<void>;
+  };
+  aportaciones: {
+    // Solo administrador, pastor y tesorero las pueden leer
+    listar(sedeId: string): Promise<Aportacion[]>;
+    crear(sedeId: string, datos: DatosAportacion): Promise<void>;
+    cambiarAnulada(id: string, anulada: boolean): Promise<void>;
   };
 }

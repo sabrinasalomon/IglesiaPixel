@@ -1,6 +1,6 @@
 import { invitarUsuario } from "@/app/(app)/usuarios/acciones";
 import { supabaseNavegador } from "../supabase/cliente";
-import type { Anuncio, Asistencia, Evento, Horario, Miembro, Ministerio, Usuario } from "../types";
+import type { Anuncio, Aportacion, Asistencia, Evento, Horario, Miembro, Ministerio, Usuario } from "../types";
 import type { DatosAnuncio, Repositorio } from "./tipos";
 
 // Implementación sobre Supabase. Todas las consultas usan la sesión del
@@ -45,6 +45,17 @@ type FilaMinisterio = {
   descripcion: string;
   coordinador_id: string | null;
   ministerio_integrantes: { miembro_id: string }[];
+};
+type FilaAportacion = {
+  id: string;
+  sede_id: string;
+  fecha: string;
+  monto: number | string; // numeric llega como texto
+  concepto: Aportacion["concepto"];
+  metodo: Aportacion["metodo"];
+  miembro_id: string | null;
+  registrado_por: string | null;
+  anulada: boolean;
 };
 type FilaAsistencia = { evento_id: string; miembro_id: string; presente: boolean };
 type FilaAnuncio = {
@@ -118,6 +129,18 @@ const aAnuncio = (f: FilaAnuncio): Anuncio => ({
   importante: f.importante,
   autorId: f.autor_id ?? "",
   autorNombre: f.autor_nombre,
+});
+
+const aAportacion = (f: FilaAportacion): Aportacion => ({
+  id: f.id,
+  sedeId: f.sede_id,
+  fecha: f.fecha,
+  monto: Number(f.monto),
+  concepto: f.concepto,
+  metodo: f.metodo,
+  miembroId: f.miembro_id ?? undefined,
+  registradoPor: f.registrado_por ?? "",
+  anulada: f.anulada,
 });
 
 const ORDEN_DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -345,6 +368,28 @@ export function repositorioSupabase(): Repositorio {
       },
       async eliminar(id) {
         revisar(await db.from("anuncios").delete().eq("id", id));
+      },
+    },
+
+    aportaciones: {
+      async listar(sedeId) {
+        const filas = revisar(await db.from("aportaciones").select("*").eq("sede_id", sedeId).order("fecha"));
+        return (filas as FilaAportacion[]).map(aAportacion);
+      },
+      async crear(sedeId, d) {
+        revisar(
+          await db.from("aportaciones").insert({
+            sede_id: sedeId,
+            fecha: d.fecha,
+            monto: d.monto,
+            concepto: d.concepto,
+            metodo: d.metodo,
+            miembro_id: d.miembroId ?? null,
+          })
+        );
+      },
+      async cambiarAnulada(id, anulada) {
+        revisar(await db.from("aportaciones").update({ anulada }).eq("id", id));
       },
     },
   };

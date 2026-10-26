@@ -22,8 +22,8 @@ export { nuevoId } from "./ids";
 // Estado global de la aplicación. Funciona en dos modos:
 // - demo: datos ficticios en memoria y usuarios de demostración
 // - supabase: sesión real; los módulos leen y escriben con `repo`
-// En modo supabase, `db` solo trae configuración, sedes y el perfil; cada módulo
-// carga sus datos con `repo`. Las colecciones de donaciones se conectan en la Fase 3.
+// En modo supabase, `db` solo trae configuración, sedes y el perfil. Cada módulo
+// carga sus datos con `repo`, igual en los dos modos.
 
 interface Contexto {
   modo: "demo" | "supabase";
@@ -243,28 +243,4 @@ export function useDatos() {
   const c = useContext(Ctx);
   if (!c) throw new Error("useDatos debe usarse dentro de ProveedorDatos");
   return c;
-}
-
-// Atajos con los datos de la sede activa (colecciones de demostración)
-export function useSede() {
-  const { db, sedeId, usuario } = useDatos();
-  return useMemo(() => {
-    const sede = db.sedes.find((s) => s.id === sedeId)!;
-    const deSede = <T extends { sedeId: string | null }>(lista: T[]) =>
-      lista.filter((x) => x.sedeId === sedeId);
-    // Ministerios que coordina el usuario (para el rol Coordinador)
-    const misMinisterios = db.ministerios.filter(
-      (m) => usuario?.miembroId && m.coordinadorId === usuario.miembroId
-    );
-    return {
-      sede,
-      miembros: deSede(db.miembros),
-      eventos: deSede(db.eventos),
-      ministerios: deSede(db.ministerios),
-      aportaciones: deSede(db.aportaciones),
-      anuncios: db.anuncios.filter((a) => a.sedeId === null || a.sedeId === sedeId),
-      horarios: deSede(db.horarios),
-      misMinisterios,
-    };
-  }, [db, sedeId, usuario]);
 }

@@ -101,6 +101,7 @@ export interface Aportacion {
   metodo: MetodoPago;
   miembroId?: string; // vacío = anónima
   registradoPor: string; // id de usuario
+  anulada?: boolean; // las aportaciones no se borran: se anulan
 }
 
 export interface Anuncio {

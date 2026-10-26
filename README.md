@@ -9,12 +9,12 @@ Aplicación web para administrar una iglesia con varias sedes: miembros, asisten
 | 0 | Prototipo navegable con datos de ejemplo | Listo |
 | 1 | Supabase: inicio de sesión real, roles, sedes, usuarios, miembros, configuración | Listo |
 | 2 | Eventos y calendario, asistencia, ministerios, comunicados | Listo |
-| 3 | Donaciones, dashboard, reportes PDF y Excel, despliegue | Pendiente |
+| 3 | Donaciones, dashboard, reportes PDF y Excel, despliegue | Listo |
 
 La aplicación tiene dos modos:
 
 - **Demostración** (sin variables de Supabase): datos ficticios en memoria de la "Iglesia Comunidad de Fe" con 3 sedes. Muestra todos los módulos; los cambios se pierden al recargar.
-- **Supabase** (con `.env.local`): datos reales y sesión real. Los módulos de las Fases 1 y 2 guardan en la base de datos; donaciones y reportes (Fase 3) muestran un aviso hasta conectarse.
+- **Supabase** (con `.env.local`): datos reales y sesión real. Todos los módulos guardan en la base de datos y cada rol solo ve lo que le corresponde.
 
 ## Cómo ejecutarlo
 
@@ -29,6 +29,7 @@ Abre http://localhost:3000.
 
 - **Modo demostración:** entra con uno de los botones de rol (Administrador, Pastor, Secretario, Tesorero, Coordinador o Miembro).
 - **Modo Supabase:** sigue la guía [docs/SUPABASE.md](docs/SUPABASE.md) para crear el proyecto, las tablas y el primer administrador.
+- **Publicar en internet:** sigue [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) para subir la aplicación a Vercel.
 
 ## Qué ve cada rol
 
@@ -57,17 +58,19 @@ src/
     (app)/            Pantallas con menú lateral, una carpeta por módulo
   components/ui.tsx   Componentes básicos (botones, tablas, modales…)
   lib/
-    types.ts          Modelo de datos (futuras tablas de Supabase)
+    types.ts          Modelo de datos
     permisos.ts       Matriz de permisos por rol
     catalogos.ts      Conceptos de aportación, métodos de pago, tipos de evento
-    datos-ejemplo.ts  Generador de datos ficticios
+    datos-ejemplo.ts  Generador de datos ficticios (modo demostración)
+    exportar.ts       Exportación de reportes a Excel (.xlsx) y PDF
     store.tsx         Sesión y estado global (modo demostración o Supabase)
     repositorio/      Acceso a datos: implementación demo y Supabase
     supabase/         Clientes de Supabase (navegador, servidor, administrador)
   middleware.ts       Renueva la sesión y protege las rutas
 supabase/
   migrations/         Esquema SQL con políticas de seguridad por sede (RLS)
-  seed.sql            Datos de ejemplo opcionales
+  seed*.sql           Datos de ejemplo opcionales (uno por fase)
+  pruebas/            Pruebas de permisos por rol en SQL
   pruebas/            Pruebas de permisos por rol
 ```
 
