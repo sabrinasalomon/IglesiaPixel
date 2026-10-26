@@ -4,7 +4,6 @@ import {
   BarChart3,
   Building2,
   CalendarDays,
-  Church,
   ClipboardCheck,
   HandCoins,
   Home,
@@ -20,7 +19,8 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Selector } from "@/components/ui";
+import { Logo } from "@/components/logo";
+import { Boton, Selector, Tarjeta } from "@/components/ui";
 import { nombreRol } from "@/lib/catalogos";
 import { puedeVer, type Modulo } from "@/lib/permisos";
 import { useDatos } from "@/lib/store";
@@ -31,27 +31,28 @@ interface Enlace {
   texto: string;
   icono: React.ReactNode;
   visible: (rol: Rol) => boolean;
+  fase?: number; // fase en la que el módulo se conecta a Supabase (1 si se omite)
 }
 
 const porModulo = (m: Modulo) => (rol: Rol) => puedeVer(rol, m);
 
 const ENLACES: Enlace[] = [
-  { href: "/inicio", texto: "Inicio", icono: <Home size={18} />, visible: (r) => r === "miembro" },
+  { href: "/inicio", texto: "Inicio", icono: <Home size={18} />, visible: (r) => r === "miembro", fase: 2 },
   { href: "/panel", texto: "Panel principal", icono: <LayoutDashboard size={18} />, visible: (r) => r !== "miembro" },
   { href: "/miembros", texto: "Miembros", icono: <Users size={18} />, visible: (r) => r !== "miembro" && puedeVer(r, "miembros") },
-  { href: "/asistencia", texto: "Asistencia", icono: <ClipboardCheck size={18} />, visible: porModulo("asistencia") },
-  { href: "/eventos", texto: "Eventos", icono: <CalendarDays size={18} />, visible: porModulo("eventos") },
-  { href: "/ministerios", texto: "Ministerios", icono: <UsersRound size={18} />, visible: porModulo("ministerios") },
-  { href: "/donaciones", texto: "Donaciones", icono: <HandCoins size={18} />, visible: porModulo("donaciones") },
-  { href: "/comunicados", texto: "Comunicados", icono: <Megaphone size={18} />, visible: (r) => r !== "miembro" && puedeVer(r, "comunicados") },
-  { href: "/reportes", texto: "Reportes", icono: <BarChart3 size={18} />, visible: porModulo("reportes") },
+  { href: "/asistencia", texto: "Asistencia", icono: <ClipboardCheck size={18} />, visible: porModulo("asistencia"), fase: 2 },
+  { href: "/eventos", texto: "Eventos", icono: <CalendarDays size={18} />, visible: porModulo("eventos"), fase: 2 },
+  { href: "/ministerios", texto: "Ministerios", icono: <UsersRound size={18} />, visible: porModulo("ministerios"), fase: 2 },
+  { href: "/donaciones", texto: "Donaciones", icono: <HandCoins size={18} />, visible: porModulo("donaciones"), fase: 3 },
+  { href: "/comunicados", texto: "Comunicados", icono: <Megaphone size={18} />, visible: (r) => r !== "miembro" && puedeVer(r, "comunicados"), fase: 2 },
+  { href: "/reportes", texto: "Reportes", icono: <BarChart3 size={18} />, visible: porModulo("reportes"), fase: 3 },
   { href: "/usuarios", texto: "Usuarios", icono: <UserCog size={18} />, visible: porModulo("usuarios") },
   { href: "/sedes", texto: "Sedes", icono: <Building2 size={18} />, visible: porModulo("sedes") },
   { href: "/configuracion", texto: "Configuración", icono: <Settings size={18} />, visible: porModulo("configuracion") },
 ];
 
 export default function LayoutApp({ children }: { children: React.ReactNode }) {
-  const { usuario, db, sedeId, cambiarSede, cerrarSesion } = useDatos();
+  const { usuario, db, modo, sedeId, cambiarSede, cerrarSesion } = useDatos();
   const router = useRouter();
   const ruta = usePathname();
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -62,18 +63,46 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
   useEffect(() => setMenuAbierto(false), [ruta]);
 
   if (!usuario) return null;
+
+  const salir = async () => {
+    await cerrarSesion();
+    router.replace("/login");
+  };
+
+  // Cuenta creada pero todavía sin rol asignado por un administrador
+  if (!usuario.activo) {
+    return (
+      <Aviso titulo="Tu cuenta está pendiente de activación" salir={salir}>
+        Un administrador debe asignarte un rol y una sede antes de que puedas entrar.
+      </Aviso>
+    );
+  }
+
   const enlaces = ENLACES.filter((e) => e.visible(usuario.rol));
-  const sede = db.sedes.find((s) => s.id === sedeId)!;
+  const sede = db.sedes.find((s) => s.id === sedeId);
+  // En modo Supabase, los módulos de fases siguientes aún no tienen datos reales
+  const pendiente = modo === "supabase" ? ENLACES.find((e) => ruta.startsWith(e.href) && (e.fase ?? 1) > 1) : undefined;
+
+  if (!sede && !(usuario.rol === "administrador" && ruta.startsWith("/sedes"))) {
+    return usuario.rol === "administrador" ? (
+      <Aviso titulo="Primero registra una sede" salir={salir}>
+        Todo en el sistema pertenece a una sede.{" "}
+        <Link href="/sedes" className="text-indigo-600 hover:underline">Crear la primera sede</Link>
+      </Aviso>
+    ) : (
+      <Aviso titulo="Tu cuenta no tiene sede asignada" salir={salir}>
+        Pide a un administrador que te asigne una sede.
+      </Aviso>
+    );
+  }
 
   const barra = (
     <nav className="flex h-full flex-col bg-slate-900 text-slate-300">
       <div className="flex items-center gap-2 px-5 py-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-500 text-white">
-          <Church size={20} />
-        </span>
+        <Logo url={db.configuracion.logoUrl} />
         <div className="leading-tight">
           <p className="text-sm font-semibold text-white">{db.configuracion.nombre}</p>
-          <p className="text-xs text-slate-400">{sede.nombre}</p>
+          <p className="text-xs text-slate-400">{sede?.nombre ?? "Sin sede"}</p>
         </div>
       </div>
       <ul className="flex-1 space-y-0.5 px-3">
@@ -89,6 +118,9 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
               >
                 {e.icono}
                 {e.texto}
+                {modo === "supabase" && (e.fase ?? 1) > 1 && (
+                  <span className="ml-auto rounded bg-slate-800 px-1.5 py-0.5 text-[10px] text-slate-400">Fase {e.fase}</span>
+                )}
               </Link>
             </li>
           );
@@ -98,10 +130,7 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
         <p className="truncate text-sm font-medium text-white">{usuario.nombre}</p>
         <p className="text-xs text-slate-400">{nombreRol(usuario.rol)}</p>
         <button
-          onClick={() => {
-            cerrarSesion();
-            router.replace("/login");
-          }}
+          onClick={salir}
           className="mt-3 flex items-center gap-2 text-xs text-slate-400 hover:text-white"
         >
           <LogOut size={14} /> Cerrar sesión
@@ -135,12 +164,37 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
                 </Selector>
               </>
             ) : (
-              <span className="text-sm text-slate-500">{sede.nombre}</span>
+              <span className="text-sm text-slate-500">{sede?.nombre}</span>
             )}
           </div>
         </header>
-        <main className="mx-auto max-w-7xl px-4 py-6 lg:px-8">{children}</main>
+        <main className="mx-auto max-w-7xl px-4 py-6 lg:px-8">
+          {pendiente ? (
+            <Tarjeta className="p-10 text-center">
+              <p className="font-medium text-slate-800">{pendiente.texto} se conecta a la base de datos en la Fase {pendiente.fase}</p>
+              <p className="mt-1 text-sm text-slate-500">
+                Mientras tanto puedes ver cómo funcionará en el modo demostración (sin variables de Supabase).
+              </p>
+            </Tarjeta>
+          ) : (
+            children
+          )}
+        </main>
       </div>
+    </div>
+  );
+}
+
+function Aviso({ titulo, salir, children }: { titulo: string; salir: () => void; children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <Tarjeta className="max-w-md p-8 text-center">
+        <p className="font-semibold text-slate-900">{titulo}</p>
+        <p className="mt-2 text-sm text-slate-600">{children}</p>
+        <Boton variante="secundario" className="mt-6" onClick={salir}>
+          <LogOut size={14} /> Cerrar sesión
+        </Boton>
+      </Tarjeta>
     </div>
   );
 }

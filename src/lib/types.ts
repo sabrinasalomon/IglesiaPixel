@@ -23,7 +23,7 @@ export interface Usuario {
   nombre: string;
   correo: string;
   rol: Rol;
-  sedeId: string;
+  sedeId: string | null;
   miembroId?: string;
   activo: boolean;
 }
@@ -124,4 +124,5 @@ export interface Horario {
 export interface ConfiguracionIglesia {
   nombre: string;
   lema: string;
+  logoUrl?: string | null;
 }

@@ -1,58 +1,85 @@
 "use client";
 
-import { Plus } from "lucide-react";
-import { useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, td, th } from "@/components/ui";
+import { Pencil, Plus } from "lucide-react";
+import { useCallback, useState } from "react";
+import { Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
 import { nombreRol, ROLES } from "@/lib/catalogos";
 import { acceso } from "@/lib/permisos";
-import { nuevoId, useDatos } from "@/lib/store";
-import type { Rol } from "@/lib/types";
+import type { DatosInvitacion } from "@/lib/repositorio/tipos";
+import { useDatos } from "@/lib/store";
+import type { Rol, Usuario } from "@/lib/types";
+import { intentar, useCarga } from "@/lib/usar-carga";
 
 export default function Usuarios() {
-  const { db, usuario, actualizar, sedeId } = useDatos();
-  const [form, setForm] = useState<{ nombre: string; correo: string; rol: Rol; sedeId: string } | null>(null);
+  const { db, modo, usuario, repo, sedeId } = useDatos();
+  const cargar = useCallback(() => repo.usuarios.listar(), [repo]);
+  const { datos: usuarios, cargando, error, recargar } = useCarga<Usuario[]>(cargar, []);
+  const [nuevo, setNuevo] = useState<DatosInvitacion | null>(null);
+  const [editando, setEditando] = useState<Usuario | null>(null);
+  const [errorForm, setErrorForm] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [aviso, setAviso] = useState("");
 
   const permiso = acceso(usuario!.rol, "usuarios");
   if (!permiso) return <SinAcceso />;
   const puedeEditar = permiso === "total";
-  const sede = (id: string) => db.sedes.find((s) => s.id === id)?.nombre;
+  const nombreSede = (id: string | null) => db.sedes.find((s) => s.id === id)?.nombre ?? "Sin sede";
 
-  // En la Fase 1 esto crea la cuenta en Supabase Auth y envía la invitación por correo
-  const guardar = () => {
-    if (!form?.nombre.trim() || !form.correo.trim()) return;
-    actualizar((d) => ({ ...d, usuarios: [...d.usuarios, { id: nuevoId("u"), activo: true, ...form }] }));
-    setForm(null);
+  const ejecutar = async (accion: () => Promise<unknown>, alTerminar: () => void) => {
+    setGuardando(true);
+    const fallo = await intentar(accion);
+    setGuardando(false);
+    if (fallo) return setErrorForm(fallo);
+    alTerminar();
+    recargar();
   };
 
-  const alternar = (id: string) =>
-    actualizar((d) => ({ ...d, usuarios: d.usuarios.map((u) => (u.id === id ? { ...u, activo: !u.activo } : u)) }));
+  const invitar = () => {
+    if (!nuevo?.nombre.trim() || !nuevo.correo.trim()) return setErrorForm("Nombre y correo son obligatorios.");
+    const correo = nuevo.correo;
+    ejecutar(() => repo.usuarios.invitar(nuevo), () => {
+      setNuevo(null);
+      setAviso(modo === "demo" ? "Usuario creado (demostración)." : `Se envió la invitación a ${correo}.`);
+    });
+  };
+
+  const guardarEdicion = () => {
+    if (!editando) return;
+    ejecutar(() => repo.usuarios.editar(editando.id, { rol: editando.rol, sedeId: editando.sedeId, activo: editando.activo }), () => setEditando(null));
+  };
 
   return (
     <>
       <Encabezado
         titulo="Usuarios del sistema"
-        descripcion="Cuentas de acceso y su rol"
-        acciones={puedeEditar && <Boton onClick={() => setForm({ nombre: "", correo: "", rol: "secretario", sedeId })}><Plus size={16} /> Nuevo usuario</Boton>}
+        descripcion="Cuentas de acceso, su rol y su sede"
+        acciones={
+          puedeEditar && (
+            <Boton onClick={() => { setErrorForm(""); setNuevo({ nombre: "", correo: "", rol: "secretario", sedeId }); }}>
+              <Plus size={16} /> Invitar usuario
+            </Boton>
+          )
+        }
       />
+      {aviso && <p className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{aviso}</p>}
+      {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <Tarjeta>
         <Tabla>
           <thead>
             <tr><th className={th}>Nombre</th><th className={th}>Correo</th><th className={th}>Rol</th><th className={th}>Sede</th><th className={th}>Estado</th>{puedeEditar && <th className={th}></th>}</tr>
           </thead>
           <tbody>
-            {db.usuarios.map((u) => (
+            {usuarios.map((u) => (
               <tr key={u.id}>
                 <td className={`${td} font-medium text-slate-900`}>{u.nombre}</td>
                 <td className={td}>{u.correo}</td>
                 <td className={td}><Etiqueta tono="indigo">{nombreRol(u.rol)}</Etiqueta></td>
-                <td className={td}>{sede(u.sedeId)}</td>
-                <td className={td}>{u.activo ? <Etiqueta tono="verde">Activo</Etiqueta> : <Etiqueta>Bloqueado</Etiqueta>}</td>
+                <td className={td}>{u.rol === "administrador" ? "Todas" : nombreSede(u.sedeId)}</td>
+                <td className={td}>{u.activo ? <Etiqueta tono="verde">Activo</Etiqueta> : <Etiqueta tono="ambar">Pendiente o bloqueado</Etiqueta>}</td>
                 {puedeEditar && (
                   <td className={`${td} text-right`}>
                     {u.id !== usuario!.id && (
-                      <Boton variante={u.activo ? "peligro" : "secundario"} className="py-1" onClick={() => alternar(u.id)}>
-                        {u.activo ? "Bloquear" : "Activar"}
-                      </Boton>
+                      <Boton variante="fantasma" aria-label="Editar" onClick={() => { setErrorForm(""); setEditando({ ...u, sedeId: u.sedeId ?? db.sedes[0]?.id ?? null }); }}><Pencil size={15} /></Boton>
                     )}
                   </td>
                 )}
@@ -60,34 +87,61 @@ export default function Usuarios() {
             ))}
           </tbody>
         </Tabla>
+        {cargando && <Vacio>Cargando…</Vacio>}
       </Tarjeta>
 
       <Modal
-        titulo="Nuevo usuario"
-        abierto={!!form}
-        alCerrar={() => setForm(null)}
-        pie={<><Boton variante="secundario" onClick={() => setForm(null)}>Cancelar</Boton><Boton onClick={guardar}>Crear y enviar invitación</Boton></>}
+        titulo="Invitar usuario"
+        abierto={!!nuevo}
+        alCerrar={() => setNuevo(null)}
+        pie={<><Boton variante="secundario" onClick={() => setNuevo(null)}>Cancelar</Boton><Boton disabled={guardando} onClick={invitar}>Enviar invitación</Boton></>}
       >
-        {form && (
+        {nuevo && (
           <>
-            <Campo etiqueta="Nombre"><Entrada value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} /></Campo>
-            <Campo etiqueta="Correo"><Entrada type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} /></Campo>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Campo etiqueta="Rol">
-                <Selector value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value as Rol })}>
-                  {ROLES.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
-                </Selector>
-              </Campo>
-              <Campo etiqueta="Sede">
-                <Selector value={form.sedeId} onChange={(e) => setForm({ ...form, sedeId: e.target.value })}>
-                  {db.sedes.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
-                </Selector>
-              </Campo>
-            </div>
-            <p className="text-xs text-slate-500">El usuario recibirá un correo para crear su contraseña.</p>
+            <Campo etiqueta="Nombre"><Entrada value={nuevo.nombre} onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })} /></Campo>
+            <Campo etiqueta="Correo"><Entrada type="email" value={nuevo.correo} onChange={(e) => setNuevo({ ...nuevo, correo: e.target.value })} /></Campo>
+            <SelectoresRolSede rol={nuevo.rol} sedeId={nuevo.sedeId} alCambiar={(rol, s) => setNuevo({ ...nuevo, rol, sedeId: s })} />
+            <p className="text-xs text-slate-500">La persona recibirá un correo con un enlace para crear su contraseña.</p>
+            {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
+          </>
+        )}
+      </Modal>
+
+      <Modal
+        titulo={`Editar ${editando?.nombre ?? ""}`}
+        abierto={!!editando}
+        alCerrar={() => setEditando(null)}
+        pie={<><Boton variante="secundario" onClick={() => setEditando(null)}>Cancelar</Boton><Boton disabled={guardando} onClick={guardarEdicion}>Guardar</Boton></>}
+      >
+        {editando && (
+          <>
+            <SelectoresRolSede rol={editando.rol} sedeId={editando.sedeId ?? ""} alCambiar={(rol, s) => setEditando({ ...editando, rol, sedeId: s })} />
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={editando.activo} onChange={(e) => setEditando({ ...editando, activo: e.target.checked })} />
+              Cuenta activa (desmarca para bloquear el acceso)
+            </label>
+            {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
           </>
         )}
       </Modal>
     </>
+  );
+}
+
+function SelectoresRolSede({ rol, sedeId, alCambiar }: { rol: Rol; sedeId: string; alCambiar: (rol: Rol, sedeId: string) => void }) {
+  const { db } = useDatos();
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <Campo etiqueta="Rol">
+        <Selector value={rol} onChange={(e) => alCambiar(e.target.value as Rol, sedeId)}>
+          {ROLES.map((r) => <option key={r.id} value={r.id}>{r.nombre}</option>)}
+        </Selector>
+      </Campo>
+      <Campo etiqueta="Sede">
+        <Selector value={sedeId} onChange={(e) => alCambiar(rol, e.target.value)}>
+          {db.sedes.map((s) => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+        </Selector>
+      </Campo>
+    </div>
   );
 }

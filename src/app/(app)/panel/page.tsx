@@ -1,15 +1,61 @@
 "use client";
 
-import { CalendarDays, ClipboardCheck, HandCoins, Users, UsersRound } from "lucide-react";
+import { Building2, CalendarDays, ClipboardCheck, HandCoins, UserPlus, Users, UsersRound } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Encabezado, Etiqueta, Indicador, Tarjeta } from "@/components/ui";
 import { fechaCorta, fechaLarga, mesCorto, mxn } from "@/lib/formato";
 import { veFinanzas } from "@/lib/permisos";
 import { useDatos, useSede } from "@/lib/store";
+import type { Horario, Miembro } from "@/lib/types";
+import { useCarga } from "@/lib/usar-carga";
 
 export default function Panel() {
+  const { modo } = useDatos();
+  return modo === "demo" ? <PanelDemo /> : <PanelBasico />;
+}
+
+// Panel con datos reales de la Fase 1: miembros y horarios de la sede
+function PanelBasico() {
+  const { usuario, repo, sedeId, db, hoy } = useDatos();
+  const sede = db.sedes.find((s) => s.id === sedeId);
+  const cargar = useCallback(
+    async () => ({ miembros: await repo.miembros.listar(sedeId), horarios: await repo.horarios.listar(sedeId) }),
+    [repo, sedeId]
+  );
+  const { datos } = useCarga<{ miembros: Miembro[]; horarios: Horario[] }>(cargar, { miembros: [], horarios: [] });
+  const activos = datos.miembros.filter((m) => m.activo).length;
+  const delMes = datos.miembros.filter((m) => m.fechaIngreso.startsWith(hoy.slice(0, 7))).length;
+
+  return (
+    <>
+      <Encabezado titulo={`Hola, ${usuario!.nombre.split(" ")[0]}`} descripcion={`Resumen de ${sede?.nombre ?? ""} · ${fechaLarga(hoy)}`} />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <Indicador titulo="Miembros activos" valor={activos} detalle={`de ${datos.miembros.length} registrados`} icono={<Users size={18} />} />
+        <Indicador titulo="Nuevos este mes" valor={delMes} detalle="por fecha de ingreso" icono={<UserPlus size={18} />} />
+        <Indicador titulo="Sedes" valor={db.sedes.length} detalle="en el sistema" icono={<Building2 size={18} />} />
+      </div>
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <Tarjeta className="p-5">
+          <h2 className="mb-3 font-semibold">Horarios de reunión</h2>
+          <ul className="space-y-1 text-sm">
+            {datos.horarios.map((h) => (
+              <li key={h.id} className="flex justify-between"><span>{h.dia} · {h.tipo}</span><span className="text-slate-500">{h.hora}</span></li>
+            ))}
+            {datos.horarios.length === 0 && <li className="text-slate-500">Sin horarios registrados.</li>}
+          </ul>
+        </Tarjeta>
+        <Tarjeta className="p-5 text-sm text-slate-600">
+          <h2 className="mb-2 font-semibold text-slate-900">Próximamente en el panel</h2>
+          Eventos próximos y asistencias (Fase 2), ingresos y gráficas financieras (Fase 3).
+        </Tarjeta>
+      </div>
+    </>
+  );
+}
+
+function PanelDemo() {
   const { db, usuario, hoy } = useDatos();
   const { sede, miembros, eventos, ministerios, aportaciones, anuncios } = useSede();
   const finanzas = veFinanzas(usuario!.rol);

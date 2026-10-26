@@ -2,16 +2,19 @@
 
 Aplicación web para administrar una iglesia con varias sedes: miembros, asistencia, eventos, ministerios, donaciones, comunicados, panel de indicadores, reportes y configuración. Proyecto académico.
 
-## Estado: Fase 0 (prototipo navegable)
-
-Esta versión funciona con **datos ficticios en memoria** (la "Iglesia Comunidad de Fe" con 3 sedes). Sirve para revisar pantallas, flujos y permisos antes de conectar la base de datos. Los cambios que hagas se pierden al recargar la página.
+## Estado
 
 | Fase | Contenido | Estado |
 | --- | --- | --- |
-| 0 | Prototipo navegable con datos de ejemplo | Este PR |
-| 1 | Supabase: inicio de sesión real, roles, sedes, miembros, configuración | Pendiente |
+| 0 | Prototipo navegable con datos de ejemplo | Listo |
+| 1 | Supabase: inicio de sesión real, roles, sedes, usuarios, miembros, configuración | Listo |
 | 2 | Eventos y calendario, asistencia, ministerios, comunicados | Pendiente |
 | 3 | Donaciones, dashboard, reportes PDF y Excel, despliegue | Pendiente |
+
+La aplicación tiene dos modos:
+
+- **Demostración** (sin variables de Supabase): datos ficticios en memoria de la "Iglesia Comunidad de Fe" con 3 sedes. Muestra todos los módulos; los cambios se pierden al recargar.
+- **Supabase** (con `.env.local`): datos reales y sesión real. Los módulos de la Fase 1 guardan en la base de datos; los de fases siguientes muestran un aviso hasta conectarse.
 
 ## Cómo ejecutarlo
 
@@ -22,7 +25,10 @@ npm install
 npm run dev
 ```
 
-Abre http://localhost:3000 y entra con uno de los botones de rol de demostración (Administrador, Pastor, Secretario, Tesorero, Coordinador o Miembro). También puedes escribir el correo de un usuario de demostración (por ejemplo `admin@comunidaddefe.mx`) con cualquier contraseña.
+Abre http://localhost:3000.
+
+- **Modo demostración:** entra con uno de los botones de rol (Administrador, Pastor, Secretario, Tesorero, Coordinador o Miembro).
+- **Modo Supabase:** sigue la guía [docs/SUPABASE.md](docs/SUPABASE.md) para crear el proyecto, las tablas y el primer administrador.
 
 ## Qué ve cada rol
 
@@ -55,11 +61,18 @@ src/
     permisos.ts       Matriz de permisos por rol
     catalogos.ts      Conceptos de aportación, métodos de pago, tipos de evento
     datos-ejemplo.ts  Generador de datos ficticios
-    store.tsx         Estado del prototipo y sesión de demostración
+    store.tsx         Sesión y estado global (modo demostración o Supabase)
+    repositorio/      Acceso a datos: implementación demo y Supabase
+    supabase/         Clientes de Supabase (navegador, servidor, administrador)
+  middleware.ts       Renueva la sesión y protege las rutas
+supabase/
+  migrations/         Esquema SQL con políticas de seguridad por sede (RLS)
+  seed.sql            Datos de ejemplo opcionales
+  pruebas/            Pruebas de permisos por rol
 ```
 
 ## Tecnología
 
-Next.js 15 (React 19, TypeScript), Tailwind CSS 4, Recharts para gráficas y lucide-react para íconos. En la Fase 1 se agrega Supabase (PostgreSQL, autenticación, almacenamiento y políticas de seguridad por sede).
+Next.js 15 (React 19, TypeScript), Tailwind CSS 4, Recharts para gráficas, lucide-react para íconos y Supabase (PostgreSQL, autenticación, almacenamiento y políticas de seguridad por sede).
 
 Montos en pesos mexicanos (MXN) y fechas en formato es-MX.
