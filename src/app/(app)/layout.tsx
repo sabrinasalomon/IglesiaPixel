@@ -31,20 +31,20 @@ interface Enlace {
   texto: string;
   icono: React.ReactNode;
   visible: (rol: Rol) => boolean;
-  fase?: number; // fase en la que el módulo se conecta a Supabase (1 si se omite)
+  fase?: number; // fase en la que el módulo se conecta a Supabase (ya conectado si se omite)
 }
 
 const porModulo = (m: Modulo) => (rol: Rol) => puedeVer(rol, m);
 
 const ENLACES: Enlace[] = [
-  { href: "/inicio", texto: "Inicio", icono: <Home size={18} />, visible: (r) => r === "miembro", fase: 2 },
+  { href: "/inicio", texto: "Inicio", icono: <Home size={18} />, visible: (r) => r === "miembro" },
   { href: "/panel", texto: "Panel principal", icono: <LayoutDashboard size={18} />, visible: (r) => r !== "miembro" },
   { href: "/miembros", texto: "Miembros", icono: <Users size={18} />, visible: (r) => r !== "miembro" && puedeVer(r, "miembros") },
-  { href: "/asistencia", texto: "Asistencia", icono: <ClipboardCheck size={18} />, visible: porModulo("asistencia"), fase: 2 },
-  { href: "/eventos", texto: "Eventos", icono: <CalendarDays size={18} />, visible: porModulo("eventos"), fase: 2 },
-  { href: "/ministerios", texto: "Ministerios", icono: <UsersRound size={18} />, visible: porModulo("ministerios"), fase: 2 },
+  { href: "/asistencia", texto: "Asistencia", icono: <ClipboardCheck size={18} />, visible: porModulo("asistencia") },
+  { href: "/eventos", texto: "Eventos", icono: <CalendarDays size={18} />, visible: porModulo("eventos") },
+  { href: "/ministerios", texto: "Ministerios", icono: <UsersRound size={18} />, visible: porModulo("ministerios") },
   { href: "/donaciones", texto: "Donaciones", icono: <HandCoins size={18} />, visible: porModulo("donaciones"), fase: 3 },
-  { href: "/comunicados", texto: "Comunicados", icono: <Megaphone size={18} />, visible: (r) => r !== "miembro" && puedeVer(r, "comunicados"), fase: 2 },
+  { href: "/comunicados", texto: "Comunicados", icono: <Megaphone size={18} />, visible: (r) => r !== "miembro" && puedeVer(r, "comunicados") },
   { href: "/reportes", texto: "Reportes", icono: <BarChart3 size={18} />, visible: porModulo("reportes"), fase: 3 },
   { href: "/usuarios", texto: "Usuarios", icono: <UserCog size={18} />, visible: porModulo("usuarios") },
   { href: "/sedes", texto: "Sedes", icono: <Building2 size={18} />, visible: porModulo("sedes") },

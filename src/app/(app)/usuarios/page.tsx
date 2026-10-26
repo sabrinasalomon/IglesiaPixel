@@ -7,7 +7,7 @@ import { nombreRol, ROLES } from "@/lib/catalogos";
 import { acceso } from "@/lib/permisos";
 import type { DatosInvitacion } from "@/lib/repositorio/tipos";
 import { useDatos } from "@/lib/store";
-import type { Rol, Usuario } from "@/lib/types";
+import type { Miembro, Rol, Usuario } from "@/lib/types";
 import { intentar, useCarga } from "@/lib/usar-carga";
 
 export default function Usuarios() {
@@ -45,7 +45,8 @@ export default function Usuarios() {
 
   const guardarEdicion = () => {
     if (!editando) return;
-    ejecutar(() => repo.usuarios.editar(editando.id, { rol: editando.rol, sedeId: editando.sedeId, activo: editando.activo }), () => setEditando(null));
+    const { rol, sedeId: sede, activo, miembroId } = editando;
+    ejecutar(() => repo.usuarios.editar(editando.id, { rol, sedeId: sede, activo, miembroId }), () => setEditando(null));
   };
 
   return (
@@ -100,7 +101,8 @@ export default function Usuarios() {
           <>
             <Campo etiqueta="Nombre"><Entrada value={nuevo.nombre} onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })} /></Campo>
             <Campo etiqueta="Correo"><Entrada type="email" value={nuevo.correo} onChange={(e) => setNuevo({ ...nuevo, correo: e.target.value })} /></Campo>
-            <SelectoresRolSede rol={nuevo.rol} sedeId={nuevo.sedeId} alCambiar={(rol, s) => setNuevo({ ...nuevo, rol, sedeId: s })} />
+            <SelectoresRolSede rol={nuevo.rol} sedeId={nuevo.sedeId} alCambiar={(rol, s) => setNuevo({ ...nuevo, rol, sedeId: s, miembroId: s === nuevo.sedeId ? nuevo.miembroId : undefined })} />
+            <VinculoMiembro sedeId={nuevo.sedeId} miembroId={nuevo.miembroId} alCambiar={(miembroId) => setNuevo({ ...nuevo, miembroId })} />
             <p className="text-xs text-slate-500">La persona recibirá un correo con un enlace para crear su contraseña.</p>
             {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
           </>
@@ -115,7 +117,8 @@ export default function Usuarios() {
       >
         {editando && (
           <>
-            <SelectoresRolSede rol={editando.rol} sedeId={editando.sedeId ?? ""} alCambiar={(rol, s) => setEditando({ ...editando, rol, sedeId: s })} />
+            <SelectoresRolSede rol={editando.rol} sedeId={editando.sedeId ?? ""} alCambiar={(rol, s) => setEditando({ ...editando, rol, sedeId: s, miembroId: s === editando.sedeId ? editando.miembroId : undefined })} />
+            <VinculoMiembro sedeId={editando.sedeId ?? ""} miembroId={editando.miembroId} alCambiar={(miembroId) => setEditando({ ...editando, miembroId })} />
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={editando.activo} onChange={(e) => setEditando({ ...editando, activo: e.target.checked })} />
               Cuenta activa (desmarca para bloquear el acceso)
@@ -143,5 +146,21 @@ function SelectoresRolSede({ rol, sedeId, alCambiar }: { rol: Rol; sedeId: strin
         </Selector>
       </Campo>
     </div>
+  );
+}
+
+// Liga la cuenta con su registro de miembro. Lo necesitan el coordinador (para
+// saber qué ministerio coordina) y el rol Miembro (para ver su propio registro).
+function VinculoMiembro({ sedeId, miembroId, alCambiar }: { sedeId: string; miembroId?: string; alCambiar: (miembroId?: string) => void }) {
+  const { repo } = useDatos();
+  const cargar = useCallback(() => (sedeId ? repo.miembros.listar(sedeId) : Promise.resolve([])), [repo, sedeId]);
+  const { datos: miembros } = useCarga<Miembro[]>(cargar, []);
+  return (
+    <Campo etiqueta="Registro de miembro vinculado">
+      <Selector value={miembroId ?? ""} onChange={(e) => alCambiar(e.target.value || undefined)}>
+        <option value="">Ninguno</option>
+        {miembros.filter((m) => m.activo || m.id === miembroId).map((m) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
+      </Selector>
+    </Campo>
   );
 }

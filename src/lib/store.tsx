@@ -22,8 +22,8 @@ export { nuevoId } from "./ids";
 // Estado global de la aplicación. Funciona en dos modos:
 // - demo: datos ficticios en memoria y usuarios de demostración
 // - supabase: sesión real; los módulos leen y escriben con `repo`
-// En modo supabase, `db` solo trae configuración, sedes y el perfil; el resto
-// de colecciones quedan vacías hasta que sus módulos se conecten (Fases 2 y 3).
+// En modo supabase, `db` solo trae configuración, sedes y el perfil; cada módulo
+// carga sus datos con `repo`. Las colecciones de donaciones se conectan en la Fase 3.
 
 interface Contexto {
   modo: "demo" | "supabase";
@@ -163,14 +163,16 @@ export function ProveedorDatos({ children }: { children: React.ReactNode }) {
     return () => data.subscription.unsubscribe();
   }, [recargar, fijarDb]);
 
-  const repo = useMemo(
-    () => (modoDemo ? repositorioDemo(() => dbRef.current, actualizar) : repositorioSupabase()),
-    [actualizar]
-  );
-
   const usuario = useMemo(
     () => db?.usuarios.find((u) => u.id === usuarioId) ?? null,
     [db, usuarioId]
+  );
+  const usuarioRef = useRef(usuario);
+  usuarioRef.current = usuario;
+
+  const repo = useMemo(
+    () => (modoDemo ? repositorioDemo(() => dbRef.current, actualizar, () => usuarioRef.current) : repositorioSupabase()),
+    [actualizar]
   );
 
   const valor = useMemo<Contexto | null>(() => {

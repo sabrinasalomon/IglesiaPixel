@@ -6,9 +6,9 @@ import { useCallback, useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Encabezado, Etiqueta, Indicador, Tarjeta } from "@/components/ui";
 import { fechaCorta, fechaLarga, mesCorto, mxn } from "@/lib/formato";
-import { veFinanzas } from "@/lib/permisos";
+import { puedeVer, veFinanzas } from "@/lib/permisos";
 import { useDatos, useSede } from "@/lib/store";
-import type { Horario, Miembro } from "@/lib/types";
+import type { Asistencia, Evento, Horario, Miembro } from "@/lib/types";
 import { useCarga } from "@/lib/usar-carga";
 
 export default function Panel() {
@@ -16,25 +16,61 @@ export default function Panel() {
   return modo === "demo" ? <PanelDemo /> : <PanelBasico />;
 }
 
-// Panel con datos reales de la Fase 1: miembros y horarios de la sede
+interface DatosPanel {
+  miembros: Miembro[];
+  horarios: Horario[];
+  eventos: Evento[];
+  asistencias: Asistencia[];
+}
+
+// Panel con datos reales: miembros, horarios, eventos y asistencia de la sede.
+// Las cifras financieras llegan en la Fase 3.
 function PanelBasico() {
   const { usuario, repo, sedeId, db, hoy } = useDatos();
   const sede = db.sedes.find((s) => s.id === sedeId);
-  const cargar = useCallback(
-    async () => ({ miembros: await repo.miembros.listar(sedeId), horarios: await repo.horarios.listar(sedeId) }),
-    [repo, sedeId]
-  );
-  const { datos } = useCarga<{ miembros: Miembro[]; horarios: Horario[] }>(cargar, { miembros: [], horarios: [] });
+  const veAsistencia = puedeVer(usuario!.rol, "asistencia");
+  const cargar = useCallback(async (): Promise<DatosPanel> => {
+    const [miembros, horarios, eventos, asistencias] = await Promise.all([
+      repo.miembros.listar(sedeId),
+      repo.horarios.listar(sedeId),
+      repo.eventos.listar(sedeId),
+      veAsistencia ? repo.asistencias.listar(sedeId) : Promise.resolve([]),
+    ]);
+    return { miembros, horarios, eventos, asistencias };
+  }, [repo, sedeId, veAsistencia]);
+  const { datos } = useCarga<DatosPanel>(cargar, { miembros: [], horarios: [], eventos: [], asistencias: [] });
   const activos = datos.miembros.filter((m) => m.activo).length;
   const delMes = datos.miembros.filter((m) => m.fechaIngreso.startsWith(hoy.slice(0, 7))).length;
+  const vigentes = datos.eventos.filter((e) => !e.cancelado);
+  const eventosMes = vigentes.filter((e) => e.fecha.startsWith(hoy.slice(0, 7))).length;
+  const proximos = vigentes
+    .filter((e) => e.fecha >= hoy)
+    .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora))
+    .slice(0, 6);
+  // Último culto dominical con lista registrada
+  const ultimoCulto = vigentes
+    .filter((e) => e.tipo === "Culto dominical" && e.fecha <= hoy)
+    .sort((a, b) => b.fecha.localeCompare(a.fecha))
+    .map((e) => ({ evento: e, regs: datos.asistencias.filter((a) => a.eventoId === e.id) }))
+    .find((x) => x.regs.length > 0);
 
   return (
     <>
       <Encabezado titulo={`Hola, ${usuario!.nombre.split(" ")[0]}`} descripcion={`Resumen de ${sede?.nombre ?? ""} · ${fechaLarga(hoy)}`} />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Indicador titulo="Miembros activos" valor={activos} detalle={`de ${datos.miembros.length} registrados`} icono={<Users size={18} />} />
         <Indicador titulo="Nuevos este mes" valor={delMes} detalle="por fecha de ingreso" icono={<UserPlus size={18} />} />
-        <Indicador titulo="Sedes" valor={db.sedes.length} detalle="en el sistema" icono={<Building2 size={18} />} />
+        <Indicador titulo="Eventos este mes" valor={eventosMes} detalle={proximos.length ? `próximo: ${fechaCorta(proximos[0].fecha)}` : "sin próximos"} icono={<CalendarDays size={18} />} />
+        {veAsistencia ? (
+          <Indicador
+            titulo="Asistencia último culto"
+            valor={ultimoCulto ? ultimoCulto.regs.filter((a) => a.presente).length : "—"}
+            detalle={ultimoCulto ? `de ${ultimoCulto.regs.length} · ${fechaCorta(ultimoCulto.evento.fecha)}` : "sin registros"}
+            icono={<ClipboardCheck size={18} />}
+          />
+        ) : (
+          <Indicador titulo="Sedes" valor={db.sedes.length} detalle="en el sistema" icono={<Building2 size={18} />} />
+        )}
       </div>
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Tarjeta className="p-5">
@@ -46,9 +82,20 @@ function PanelBasico() {
             {datos.horarios.length === 0 && <li className="text-slate-500">Sin horarios registrados.</li>}
           </ul>
         </Tarjeta>
-        <Tarjeta className="p-5 text-sm text-slate-600">
-          <h2 className="mb-2 font-semibold text-slate-900">Próximamente en el panel</h2>
-          Eventos próximos y asistencias (Fase 2), ingresos y gráficas financieras (Fase 3).
+        <Tarjeta className="p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-semibold">Próximos eventos</h2>
+            <Link href="/eventos" className="text-sm text-indigo-600 hover:underline">Ver calendario</Link>
+          </div>
+          <ul className="space-y-2 text-sm">
+            {proximos.map((e) => (
+              <li key={e.id} className="flex justify-between gap-2">
+                <span className="truncate">{e.titulo}</span>
+                <span className="whitespace-nowrap text-slate-500">{fechaCorta(e.fecha)} · {e.hora}</span>
+              </li>
+            ))}
+            {proximos.length === 0 && <li className="text-slate-500">No hay eventos programados.</li>}
+          </ul>
         </Tarjeta>
       </div>
     </>

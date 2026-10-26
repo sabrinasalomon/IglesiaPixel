@@ -1,16 +1,40 @@
 "use client";
 
 import { Check, Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, Etiqueta, Selector, SinAcceso, Tabla, Tarjeta, td, th } from "@/components/ui";
+import { useCallback, useMemo, useState } from "react";
+import { Boton, Campo, Encabezado, Entrada, Etiqueta, Selector, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
 import { fechaCorta } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
-import { useDatos, useSede } from "@/lib/store";
+import { useDatos } from "@/lib/store";
+import type { Asistencia as RegistroAsistencia, Evento, Miembro, Ministerio } from "@/lib/types";
+import { intentar, useCarga } from "@/lib/usar-carga";
+
+interface Datos {
+  eventos: Evento[];
+  ministerios: Ministerio[];
+  miembros: Miembro[];
+  asistencias: RegistroAsistencia[];
+}
 
 export default function Asistencia() {
-  const { db, usuario, actualizar, hoy } = useDatos();
-  const { eventos, miembros, ministerios, misMinisterios } = useSede();
+  const { usuario, repo, sedeId, hoy } = useDatos();
   const permiso = acceso(usuario!.rol, "asistencia");
+  const cargar = useCallback(async (): Promise<Datos> => {
+    if (!permiso) return { eventos: [], ministerios: [], miembros: [], asistencias: [] };
+    const [eventos, ministerios, miembros, asistencias] = await Promise.all([
+      repo.eventos.listar(sedeId),
+      repo.ministerios.listar(sedeId),
+      repo.miembros.listar(sedeId),
+      repo.asistencias.listar(sedeId),
+    ]);
+    return { eventos, ministerios, miembros, asistencias };
+  }, [repo, sedeId, permiso]);
+  const { datos, cargando, error, recargar } = useCarga<Datos>(cargar, { eventos: [], ministerios: [], miembros: [], asistencias: [] });
+  const { eventos, ministerios, miembros, asistencias } = datos;
+  const misMinisterios = useMemo(
+    () => ministerios.filter((m) => usuario!.miembroId && m.coordinadorId === usuario!.miembroId),
+    [ministerios, usuario]
+  );
 
   // El coordinador solo pasa lista en los eventos de su ministerio
   const elegibles = useMemo(() => {
@@ -24,6 +48,8 @@ export default function Asistencia() {
   const [eventoId, setEventoId] = useState(elegibles[0]?.id ?? "");
   const [busqueda, setBusqueda] = useState("");
   const [guardado, setGuardado] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [errorGuardar, setErrorGuardar] = useState("");
   const evento = elegibles.find((e) => e.id === eventoId) ?? elegibles[0];
 
   // Lista de convocados: integrantes del ministerio o todos los miembros activos
@@ -38,21 +64,22 @@ export default function Asistencia() {
   const [cargadoPara, setCargadoPara] = useState("");
   if (evento && cargadoPara !== evento.id) {
     const previas = Object.fromEntries(
-      db.asistencias.filter((a) => a.eventoId === evento.id).map((a) => [a.miembroId, a.presente])
+      asistencias.filter((a) => a.eventoId === evento.id).map((a) => [a.miembroId, a.presente])
     );
     setMarcas(previas);
     setCargadoPara(evento.id);
     setGuardado(false);
+    setErrorGuardar("");
   }
 
   const historial = useMemo(
     () =>
       elegibles.slice(0, 12).map((e) => {
-        const regs = db.asistencias.filter((a) => a.eventoId === e.id);
+        const regs = asistencias.filter((a) => a.eventoId === e.id);
         const presentes = regs.filter((a) => a.presente).length;
         return { evento: e, presentes, total: regs.length };
       }),
-    [elegibles, db.asistencias]
+    [elegibles, asistencias]
   );
 
   if (!permiso) return <SinAcceso />;
@@ -60,21 +87,25 @@ export default function Asistencia() {
   const presentes = convocados.filter((m) => marcas[m.id]).length;
   const visibles = convocados.filter((m) => m.nombre.toLowerCase().includes(busqueda.trim().toLowerCase()));
 
-  const guardar = () => {
+  const guardar = async () => {
     if (!evento) return;
-    actualizar((d) => ({
-      ...d,
-      asistencias: [
-        ...d.asistencias.filter((a) => a.eventoId !== evento.id),
-        ...convocados.map((m) => ({ eventoId: evento.id, miembroId: m.id, presente: !!marcas[m.id] })),
-      ],
-    }));
-    setGuardado(true);
+    setGuardando(true);
+    const fallo = await intentar(() =>
+      repo.asistencias.guardar(
+        evento.id,
+        convocados.map((m) => ({ eventoId: evento.id, miembroId: m.id, presente: !!marcas[m.id] }))
+      )
+    );
+    setGuardando(false);
+    setErrorGuardar(fallo);
+    setGuardado(!fallo);
+    recargar();
   };
 
   return (
     <>
       <Encabezado titulo="Control de asistencia" descripcion="Selecciona el evento y marca a los presentes" />
+      {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <div className="grid gap-4 lg:grid-cols-5">
         <Tarjeta className="lg:col-span-3">
           <div className="grid gap-3 border-b border-slate-200 p-4 sm:grid-cols-2">
@@ -100,10 +131,11 @@ export default function Asistencia() {
                 </span>
                 <div className="flex gap-2">
                   <Boton variante="secundario" onClick={() => setMarcas(Object.fromEntries(convocados.map((m) => [m.id, true])))}>Todos presentes</Boton>
-                  <Boton onClick={guardar}>Guardar asistencia</Boton>
+                  <Boton disabled={guardando} onClick={guardar}>Guardar asistencia</Boton>
                 </div>
               </div>
               {guardado && <p className="mx-4 mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Asistencia guardada.</p>}
+              {errorGuardar && <p className="mx-4 mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorGuardar}</p>}
               <ul className="max-h-[480px] divide-y divide-slate-100 overflow-y-auto">
                 {visibles.map((m) => (
                   <li key={m.id} className="flex items-center justify-between px-4 py-2">
@@ -126,6 +158,8 @@ export default function Asistencia() {
                 ))}
               </ul>
             </>
+          ) : cargando ? (
+            <Vacio>Cargando…</Vacio>
           ) : (
             <p className="p-6 text-sm text-slate-500">No hay eventos disponibles para pasar lista.</p>
           )}

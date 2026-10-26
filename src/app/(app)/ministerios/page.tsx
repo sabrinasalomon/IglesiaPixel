@@ -1,21 +1,38 @@
 "use client";
 
 import { Plus, UserMinus, UsersRound } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { AreaTexto, Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tarjeta } from "@/components/ui";
 import { fechaCorta } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
-import { nuevoId, useDatos, useSede } from "@/lib/store";
-import type { Ministerio } from "@/lib/types";
+import { useDatos } from "@/lib/store";
+import type { Evento, Miembro, Ministerio } from "@/lib/types";
+import { intentar, useCarga } from "@/lib/usar-carga";
 
 export default function Ministerios() {
-  const { usuario, actualizar, sedeId, hoy } = useDatos();
-  const { ministerios, miembros, eventos, misMinisterios } = useSede();
+  const { usuario, repo, sedeId, hoy } = useDatos();
+  const permiso = acceso(usuario!.rol, "ministerios");
+  const cargar = useCallback(async () => {
+    if (!permiso) return { ministerios: [], miembros: [], eventos: [] };
+    const [ministerios, miembros, eventos] = await Promise.all([
+      repo.ministerios.listar(sedeId),
+      repo.miembros.listar(sedeId),
+      repo.eventos.listar(sedeId),
+    ]);
+    return { ministerios, miembros, eventos };
+  }, [repo, sedeId, permiso]);
+  const { datos, cargando, error, recargar } = useCarga<{ ministerios: Ministerio[]; miembros: Miembro[]; eventos: Evento[] }>(
+    cargar,
+    { ministerios: [], miembros: [], eventos: [] }
+  );
+  const { ministerios, miembros, eventos } = datos;
+  const misMinisterios = ministerios.filter((m) => usuario!.miembroId && m.coordinadorId === usuario!.miembroId);
   const [abiertoId, setAbiertoId] = useState<string | null>(null);
   const [nuevo, setNuevo] = useState<{ nombre: string; descripcion: string; coordinadorId: string } | null>(null);
   const [agregar, setAgregar] = useState("");
+  const [errorAccion, setErrorAccion] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
-  const permiso = acceso(usuario!.rol, "ministerios");
   if (!permiso) return <SinAcceso />;
 
   const puedeCrear = permiso === "total" || permiso === "editar";
@@ -23,26 +40,21 @@ export default function Ministerios() {
   const nombre = (id?: string) => miembros.find((m) => m.id === id)?.nombre ?? "Sin asignar";
   const abierto = ministerios.find((m) => m.id === abiertoId);
 
-  const cambiar = (id: string, cambio: (m: Ministerio) => Ministerio) =>
-    actualizar((db) => ({ ...db, ministerios: db.ministerios.map((m) => (m.id === id ? cambio(m) : m)) }));
+  // Ejecuta un cambio, muestra el error si lo hubo y vuelve a cargar
+  const ejecutar = async (accion: () => Promise<unknown>) => {
+    setGuardando(true);
+    const fallo = await intentar(accion);
+    setGuardando(false);
+    setErrorAccion(fallo);
+    recargar();
+    return !fallo;
+  };
 
-  const crear = () => {
-    if (!nuevo?.nombre.trim()) return;
-    actualizar((db) => ({
-      ...db,
-      ministerios: [
-        ...db.ministerios,
-        {
-          id: nuevoId("min"),
-          sedeId,
-          nombre: nuevo.nombre,
-          descripcion: nuevo.descripcion,
-          coordinadorId: nuevo.coordinadorId || undefined,
-          integrantes: nuevo.coordinadorId ? [nuevo.coordinadorId] : [],
-        },
-      ],
-    }));
-    setNuevo(null);
+  const crear = async () => {
+    if (!nuevo) return;
+    if (!nuevo.nombre.trim()) return setErrorAccion("El nombre es obligatorio.");
+    const datosNuevo = { nombre: nuevo.nombre.trim(), descripcion: nuevo.descripcion, coordinadorId: nuevo.coordinadorId || undefined };
+    if (await ejecutar(() => repo.ministerios.crear(sedeId, datosNuevo))) setNuevo(null);
   };
 
   return (
@@ -50,8 +62,14 @@ export default function Ministerios() {
       <Encabezado
         titulo="Ministerios"
         descripcion="Grupos de trabajo, sus coordinadores e integrantes"
-        acciones={puedeCrear && <Boton onClick={() => setNuevo({ nombre: "", descripcion: "", coordinadorId: "" })}><Plus size={16} /> Nuevo ministerio</Boton>}
+        acciones={puedeCrear && <Boton onClick={() => { setErrorAccion(""); setNuevo({ nombre: "", descripcion: "", coordinadorId: "" }); }}><Plus size={16} /> Nuevo ministerio</Boton>}
       />
+      {(error || (errorAccion && !abierto && !nuevo)) && (
+        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorAccion}</p>
+      )}
+      {!cargando && ministerios.length === 0 && (
+        <Tarjeta className="p-8 text-center text-sm text-slate-500">Esta sede todavía no tiene ministerios registrados.</Tarjeta>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {ministerios.map((m) => {
           const proximos = eventos.filter((e) => e.ministerioId === m.id && e.fecha >= hoy && !e.cancelado);
@@ -74,7 +92,7 @@ export default function Ministerios() {
                   <dd className="font-medium">{proximos[0] ? fechaCorta(proximos[0].fecha) : "Ninguna"}</dd>
                 </div>
               </dl>
-              <Boton variante="secundario" className="mt-4" onClick={() => setAbiertoId(m.id)}>Ver integrantes</Boton>
+              <Boton variante="secundario" className="mt-4" onClick={() => { setErrorAccion(""); setAbiertoId(m.id); }}>Ver integrantes</Boton>
             </Tarjeta>
           );
         })}
@@ -85,9 +103,12 @@ export default function Ministerios() {
           <>
             <Campo etiqueta="Coordinador">
               <Selector
-                disabled={!puedeCrear}
+                disabled={!puedeCrear || guardando}
                 value={abierto.coordinadorId ?? ""}
-                onChange={(e) => cambiar(abierto.id, (m) => ({ ...m, coordinadorId: e.target.value || undefined }))}
+                onChange={(e) => {
+                  const coordinador = e.target.value || undefined;
+                  ejecutar(() => repo.ministerios.cambiarCoordinador(abierto.id, coordinador));
+                }}
               >
                 <option value="">Sin asignar</option>
                 {miembros.filter((x) => abierto.integrantes.includes(x.id)).map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
@@ -100,10 +121,9 @@ export default function Ministerios() {
                   {miembros.filter((x) => x.activo && !abierto.integrantes.includes(x.id)).map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
                 </Selector>
                 <Boton
-                  disabled={!agregar}
-                  onClick={() => {
-                    cambiar(abierto.id, (m) => ({ ...m, integrantes: [...m.integrantes, agregar] }));
-                    setAgregar("");
+                  disabled={!agregar || guardando}
+                  onClick={async () => {
+                    if (await ejecutar(() => repo.ministerios.agregarIntegrante(abierto.id, agregar))) setAgregar("");
                   }}
                 >
                   Agregar
@@ -120,7 +140,8 @@ export default function Ministerios() {
                     <button
                       className="text-slate-400 hover:text-red-600"
                       aria-label="Quitar del ministerio"
-                      onClick={() => cambiar(abierto.id, (m) => ({ ...m, integrantes: m.integrantes.filter((x) => x !== id) }))}
+                      disabled={guardando}
+                      onClick={() => ejecutar(() => repo.ministerios.quitarIntegrante(abierto.id, id))}
                     >
                       <UserMinus size={16} />
                     </button>
@@ -128,11 +149,12 @@ export default function Ministerios() {
                 </li>
               ))}
             </ul>
+            {errorAccion && <p className="text-sm text-red-600">{errorAccion}</p>}
             <div>
               <h3 className="mb-2 text-sm font-semibold">Actividades programadas</h3>
               <ul className="space-y-1 text-sm text-slate-600">
                 {eventos
-                  .filter((e) => e.ministerioId === abierto.id && e.fecha >= hoy)
+                  .filter((e) => e.ministerioId === abierto.id && e.fecha >= hoy && !e.cancelado)
                   .map((e) => <li key={e.id}>{fechaCorta(e.fecha)} · {e.hora} · {e.titulo}</li>)}
               </ul>
             </div>
@@ -144,7 +166,7 @@ export default function Ministerios() {
         titulo="Nuevo ministerio"
         abierto={!!nuevo}
         alCerrar={() => setNuevo(null)}
-        pie={<><Boton variante="secundario" onClick={() => setNuevo(null)}>Cancelar</Boton><Boton onClick={crear}>Crear</Boton></>}
+        pie={<><Boton variante="secundario" onClick={() => setNuevo(null)}>Cancelar</Boton><Boton disabled={guardando} onClick={crear}>Crear</Boton></>}
       >
         {nuevo && (
           <>
@@ -156,6 +178,7 @@ export default function Ministerios() {
                 {miembros.filter((x) => x.activo).map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
               </Selector>
             </Campo>
+            {errorAccion && <p className="text-sm text-red-600">{errorAccion}</p>}
           </>
         )}
       </Modal>

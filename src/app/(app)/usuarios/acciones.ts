@@ -36,7 +36,7 @@ export async function invitarUsuario(datos: DatosInvitacion): Promise<{ error?: 
   // El trigger creó el perfil inactivo; aquí se le asignan rol y sede
   const { error: errorPerfil } = await admin
     .from("usuarios")
-    .update({ nombre: datos.nombre, rol: datos.rol, sede_id: datos.sedeId, activo: true })
+    .update({ nombre: datos.nombre, rol: datos.rol, sede_id: datos.sedeId, miembro_id: datos.miembroId ?? null, activo: true })
     .eq("id", data.user.id);
   if (errorPerfil) return { error: errorPerfil.message };
   return {};

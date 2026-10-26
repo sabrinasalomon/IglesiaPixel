@@ -8,13 +8,13 @@ Aplicación web para administrar una iglesia con varias sedes: miembros, asisten
 | --- | --- | --- |
 | 0 | Prototipo navegable con datos de ejemplo | Listo |
 | 1 | Supabase: inicio de sesión real, roles, sedes, usuarios, miembros, configuración | Listo |
-| 2 | Eventos y calendario, asistencia, ministerios, comunicados | Pendiente |
+| 2 | Eventos y calendario, asistencia, ministerios, comunicados | Listo |
 | 3 | Donaciones, dashboard, reportes PDF y Excel, despliegue | Pendiente |
 
 La aplicación tiene dos modos:
 
 - **Demostración** (sin variables de Supabase): datos ficticios en memoria de la "Iglesia Comunidad de Fe" con 3 sedes. Muestra todos los módulos; los cambios se pierden al recargar.
-- **Supabase** (con `.env.local`): datos reales y sesión real. Los módulos de la Fase 1 guardan en la base de datos; los de fases siguientes muestran un aviso hasta conectarse.
+- **Supabase** (con `.env.local`): datos reales y sesión real. Los módulos de las Fases 1 y 2 guardan en la base de datos; donaciones y reportes (Fase 3) muestran un aviso hasta conectarse.
 
 ## Cómo ejecutarlo
 

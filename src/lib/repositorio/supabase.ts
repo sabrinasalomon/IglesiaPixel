@@ -1,7 +1,7 @@
 import { invitarUsuario } from "@/app/(app)/usuarios/acciones";
 import { supabaseNavegador } from "../supabase/cliente";
-import type { Horario, Miembro, Usuario } from "../types";
-import type { Repositorio } from "./tipos";
+import type { Anuncio, Asistencia, Evento, Horario, Miembro, Ministerio, Usuario } from "../types";
+import type { DatosAnuncio, Repositorio } from "./tipos";
 
 // Implementación sobre Supabase. Todas las consultas usan la sesión del
 // usuario, así que las políticas RLS deciden qué filas puede leer o cambiar.
@@ -25,6 +25,38 @@ type FilaUsuario = {
   activo: boolean;
 };
 type FilaHorario = { id: string; sede_id: string; dia: string; hora: string; tipo: string };
+type FilaEvento = {
+  id: string;
+  sede_id: string;
+  ministerio_id: string | null;
+  titulo: string;
+  tipo: Evento["tipo"];
+  fecha: string;
+  hora: string;
+  lugar: string;
+  descripcion: string;
+  cancelado: boolean;
+  evento_responsables: { miembro_id: string }[];
+};
+type FilaMinisterio = {
+  id: string;
+  sede_id: string;
+  nombre: string;
+  descripcion: string;
+  coordinador_id: string | null;
+  ministerio_integrantes: { miembro_id: string }[];
+};
+type FilaAsistencia = { evento_id: string; miembro_id: string; presente: boolean };
+type FilaAnuncio = {
+  id: string;
+  sede_id: string | null;
+  titulo: string;
+  contenido: string;
+  fecha_publicacion: string;
+  importante: boolean;
+  autor_id: string | null;
+  autor_nombre: string;
+};
 
 export const aMiembro = (f: FilaMiembro): Miembro => ({
   id: f.id,
@@ -52,6 +84,40 @@ const aHorario = (f: FilaHorario): Horario => ({
   dia: f.dia,
   hora: f.hora.slice(0, 5),
   tipo: f.tipo,
+});
+
+const aEvento = (f: FilaEvento): Evento => ({
+  id: f.id,
+  sedeId: f.sede_id,
+  ministerioId: f.ministerio_id ?? undefined,
+  titulo: f.titulo,
+  tipo: f.tipo,
+  fecha: f.fecha,
+  hora: f.hora.slice(0, 5),
+  lugar: f.lugar,
+  descripcion: f.descripcion,
+  responsables: f.evento_responsables.map((r) => r.miembro_id),
+  cancelado: f.cancelado,
+});
+
+const aMinisterio = (f: FilaMinisterio): Ministerio => ({
+  id: f.id,
+  sedeId: f.sede_id,
+  nombre: f.nombre,
+  descripcion: f.descripcion,
+  coordinadorId: f.coordinador_id ?? undefined,
+  integrantes: f.ministerio_integrantes.map((i) => i.miembro_id),
+});
+
+const aAnuncio = (f: FilaAnuncio): Anuncio => ({
+  id: f.id,
+  sedeId: f.sede_id,
+  titulo: f.titulo,
+  contenido: f.contenido,
+  fechaPublicacion: f.fecha_publicacion,
+  importante: f.importante,
+  autorId: f.autor_id ?? "",
+  autorNombre: f.autor_nombre,
 });
 
 const ORDEN_DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -121,6 +187,7 @@ export function repositorioSupabase(): Repositorio {
         if (c.rol !== undefined) cambios.rol = c.rol;
         if (c.sedeId !== undefined) cambios.sede_id = c.sedeId;
         if (c.activo !== undefined) cambios.activo = c.activo;
+        if ("miembroId" in c) cambios.miembro_id = c.miembroId ?? null;
         revisar(await db.from("usuarios").update(cambios).eq("id", id));
       },
     },
@@ -157,5 +224,146 @@ export function repositorioSupabase(): Repositorio {
         revisar(await db.from("horarios").delete().eq("id", id));
       },
     },
+
+    eventos: {
+      async listar(sedeId) {
+        const filas = revisar(
+          await db.from("eventos").select("*, evento_responsables(miembro_id)").eq("sede_id", sedeId).order("fecha")
+        );
+        return (filas as FilaEvento[]).map(aEvento);
+      },
+      async crear(sedeId, d) {
+        const fila = revisar(
+          await db
+            .from("eventos")
+            .insert({
+              sede_id: sedeId,
+              ministerio_id: d.ministerioId ?? null,
+              titulo: d.titulo,
+              tipo: d.tipo,
+              fecha: d.fecha,
+              hora: d.hora,
+              lugar: d.lugar,
+              descripcion: d.descripcion,
+            })
+            .select("id")
+            .single()
+        );
+        await fijarResponsables((fila as { id: string }).id, d.responsables);
+      },
+      async editar(id, d) {
+        revisar(
+          await db
+            .from("eventos")
+            .update({
+              ministerio_id: d.ministerioId ?? null,
+              titulo: d.titulo,
+              tipo: d.tipo,
+              fecha: d.fecha,
+              hora: d.hora,
+              lugar: d.lugar,
+              descripcion: d.descripcion,
+            })
+            .eq("id", id)
+        );
+        await fijarResponsables(id, d.responsables);
+      },
+      async cambiarCancelado(id, cancelado) {
+        revisar(await db.from("eventos").update({ cancelado }).eq("id", id));
+      },
+    },
+
+    ministerios: {
+      async listar(sedeId) {
+        const filas = revisar(
+          await db.from("ministerios").select("*, ministerio_integrantes(miembro_id)").eq("sede_id", sedeId).order("nombre")
+        );
+        return (filas as FilaMinisterio[]).map(aMinisterio);
+      },
+      async crear(sedeId, d) {
+        const fila = revisar(
+          await db
+            .from("ministerios")
+            .insert({ sede_id: sedeId, nombre: d.nombre, descripcion: d.descripcion, coordinador_id: d.coordinadorId ?? null })
+            .select("id")
+            .single()
+        );
+        // El coordinador también es integrante
+        if (d.coordinadorId) {
+          revisar(
+            await db.from("ministerio_integrantes").insert({ ministerio_id: (fila as { id: string }).id, miembro_id: d.coordinadorId })
+          );
+        }
+      },
+      async cambiarCoordinador(id, miembroId) {
+        revisar(await db.from("ministerios").update({ coordinador_id: miembroId ?? null }).eq("id", id));
+      },
+      async agregarIntegrante(id, miembroId) {
+        revisar(await db.from("ministerio_integrantes").insert({ ministerio_id: id, miembro_id: miembroId }));
+      },
+      async quitarIntegrante(id, miembroId) {
+        revisar(await db.from("ministerio_integrantes").delete().eq("ministerio_id", id).eq("miembro_id", miembroId));
+      },
+    },
+
+    asistencias: {
+      async listar(sedeId) {
+        const filas = revisar(
+          await db.from("asistencias").select("evento_id, miembro_id, presente, eventos!inner(sede_id)").eq("eventos.sede_id", sedeId)
+        );
+        return (filas as unknown as FilaAsistencia[]).map(
+          (f): Asistencia => ({ eventoId: f.evento_id, miembroId: f.miembro_id, presente: f.presente })
+        );
+      },
+      async guardar(eventoId, registros) {
+        if (registros.length === 0) return;
+        revisar(
+          await db.from("asistencias").upsert(
+            registros.map((r) => ({ evento_id: eventoId, miembro_id: r.miembroId, presente: r.presente })),
+            { onConflict: "evento_id,miembro_id" }
+          )
+        );
+      },
+    },
+
+    anuncios: {
+      async listar(sedeId) {
+        const filas = revisar(
+          await db
+            .from("anuncios")
+            .select("*")
+            .or(`sede_id.is.null,sede_id.eq.${sedeId}`)
+            .order("fecha_publicacion", { ascending: false })
+        );
+        return (filas as FilaAnuncio[]).map(aAnuncio);
+      },
+      async crear(d) {
+        revisar(await db.from("anuncios").insert(filaAnuncio(d)));
+      },
+      async editar(id, d) {
+        revisar(await db.from("anuncios").update(filaAnuncio(d)).eq("id", id));
+      },
+      async eliminar(id) {
+        revisar(await db.from("anuncios").delete().eq("id", id));
+      },
+    },
   };
+
+  // Reemplaza la lista de responsables de un evento
+  async function fijarResponsables(eventoId: string, responsables: string[]) {
+    revisar(await db.from("evento_responsables").delete().eq("evento_id", eventoId));
+    if (responsables.length) {
+      revisar(
+        await db.from("evento_responsables").insert(responsables.map((miembro_id) => ({ evento_id: eventoId, miembro_id })))
+      );
+    }
+  }
 }
+
+const filaAnuncio = (d: DatosAnuncio) => ({
+  sede_id: d.sedeId,
+  titulo: d.titulo,
+  contenido: d.contenido,
+  fecha_publicacion: d.fechaPublicacion,
+  importante: d.importante,
+});

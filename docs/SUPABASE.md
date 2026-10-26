@@ -1,4 +1,4 @@
-# Configurar Supabase (Fase 1)
+# Configurar Supabase
 
 Esta guía conecta la aplicación a una base de datos real. Toma unos 15 minutos y usa el plan gratuito de Supabase. Sin estos pasos, la aplicación sigue funcionando en **modo demostración**.
 
@@ -12,10 +12,14 @@ Esta guía conecta la aplicación a una base de datos real. Toma unos 15 minutos
 ## 2. Crear las tablas y la seguridad
 
 1. En el menú izquierdo abre **SQL Editor** y crea una consulta nueva (**New query**).
-2. Copia todo el contenido de [`supabase/migrations/20261026000001_fase1_esquema.sql`](../supabase/migrations/20261026000001_fase1_esquema.sql), pégalo y presiona **Run**. Debe decir *Success. No rows returned*.
-3. (Opcional) Para tener datos de ejemplo, crea otra consulta con el contenido de [`supabase/seed.sql`](../supabase/seed.sql) y presiona **Run**. Esto agrega la "Iglesia Comunidad de Fe" con 3 sedes, horarios y algunos miembros.
+2. Ejecuta, en este orden y cada uno en su propia consulta, el contenido de los archivos de [`supabase/migrations/`](../supabase/migrations). Copia el archivo completo, pégalo y presiona **Run**. Cada uno debe decir *Success. No rows returned*.
+   - [`20261026000001_fase1_esquema.sql`](../supabase/migrations/20261026000001_fase1_esquema.sql): sedes, usuarios, miembros, configuración y horarios.
+   - [`20261026000002_fase2_esquema.sql`](../supabase/migrations/20261026000002_fase2_esquema.sql): ministerios, eventos, asistencia y comunicados.
+3. (Opcional) Para tener datos de ejemplo, ejecuta también [`supabase/seed.sql`](../supabase/seed.sql) y después [`supabase/seed_fase2.sql`](../supabase/seed_fase2.sql). Agregan la "Iglesia Comunidad de Fe" con 3 sedes, horarios, miembros, ministerios, eventos de las últimas semanas con su asistencia y algunos anuncios.
 
 > Haz el paso 3 **antes** del paso 5: así el administrador queda asignado automáticamente a la primera sede.
+
+**¿Ya tenías la Fase 1 instalada?** Solo ejecuta `20261026000002_fase2_esquema.sql` y, si usas los datos de ejemplo, `seed_fase2.sql`. No vuelvas a ejecutar los archivos de la Fase 1: fallarían porque las tablas ya existen.
 
 ## 3. Cerrar el registro público
 
@@ -63,6 +67,11 @@ Estas direcciones son a donde llevan los correos de invitación y de recuperaci�
 
 En **Usuarios → Invitar usuario** escribe nombre, correo, rol y sede. La persona recibe un correo con un enlace para crear su contraseña.
 
+En **Registro de miembro vinculado** elige a qué miembro corresponde la cuenta. Es necesario para dos roles:
+
+- **Coordinador:** el sistema sabe qué ministerio coordina por este vínculo (el coordinador de cada ministerio se elige en *Ministerios*).
+- **Miembro:** así la persona ve su propio registro.
+
 El servicio de correo incluido en Supabase solo envía unos pocos correos por hora. Para un proyecto académico alcanza; si necesitas más, configura un SMTP propio en **Project Settings → Authentication → SMTP Settings**.
 
 ## Publicar en Vercel (opcional)
@@ -83,6 +92,10 @@ Las reglas de acceso están en la propia base de datos (Row Level Security), no 
 | Configuración | Todos (se muestra en el inicio de sesión) | Administrador |
 | Horarios | Su sede | Administrador |
 | Logotipo | Público | Administrador |
+| Ministerios | Administrador; pastor, secretario, tesorero y coordinador de la sede | Administrador; pastor y secretario en su sede. El coordinador solo agrega o quita integrantes del suyo |
+| Eventos | Toda la sede, incluido el rol Miembro | Administrador; pastor y secretario en su sede; el coordinador, los de su ministerio. Nadie borra: se cancelan |
+| Asistencia | Quien puede gestionar el evento | Igual que eventos |
+| Comunicados | Toda la sede, cuando llega su fecha de publicación (los programados solo los ve quien los gestiona) | Administrador (una sede o todas); pastor y secretario en su sede. El autor lo pone la base de datos |
 
 Las pruebas de estas reglas están en [`supabase/pruebas/`](../supabase/pruebas).
 

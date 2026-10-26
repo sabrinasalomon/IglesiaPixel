@@ -1,7 +1,18 @@
-import type { ConfiguracionIglesia, Horario, Miembro, Rol, Sede, Usuario } from "../types";
+import type {
+  Anuncio,
+  Asistencia,
+  ConfiguracionIglesia,
+  Evento,
+  Horario,
+  Miembro,
+  Ministerio,
+  Rol,
+  Sede,
+  Usuario,
+} from "../types";
 
-// Operaciones de datos de los módulos de la Fase 1. Hay dos implementaciones:
-// una sobre los datos de demostración y otra sobre Supabase.
+// Operaciones de datos de los módulos conectados (Fases 1 y 2). Hay dos
+// implementaciones: una sobre los datos de demostración y otra sobre Supabase.
 
 export type DatosMiembro = Pick<Miembro, "nombre" | "telefono" | "correo" | "fechaIngreso">;
 export type DatosSede = Pick<Sede, "nombre" | "direccion" | "telefono" | "correo">;
@@ -11,8 +22,12 @@ export interface DatosInvitacion {
   correo: string;
   rol: Rol;
   sedeId: string;
+  miembroId?: string;
 }
-export type CambiosUsuario = Partial<Pick<Usuario, "rol" | "sedeId" | "activo">>;
+export type CambiosUsuario = Partial<Pick<Usuario, "rol" | "sedeId" | "activo" | "miembroId">>;
+export type DatosEvento = Omit<Evento, "id" | "sedeId" | "cancelado">;
+export type DatosMinisterio = Pick<Ministerio, "nombre" | "descripcion" | "coordinadorId">;
+export type DatosAnuncio = Pick<Anuncio, "titulo" | "contenido" | "fechaPublicacion" | "importante" | "sedeId">;
 
 export interface Repositorio {
   miembros: {
@@ -37,6 +52,31 @@ export interface Repositorio {
   horarios: {
     listar(sedeId: string): Promise<Horario[]>;
     crear(sedeId: string, datos: DatosHorario): Promise<void>;
+    eliminar(id: string): Promise<void>;
+  };
+  eventos: {
+    listar(sedeId: string): Promise<Evento[]>;
+    crear(sedeId: string, datos: DatosEvento): Promise<void>;
+    editar(id: string, datos: DatosEvento): Promise<void>;
+    cambiarCancelado(id: string, cancelado: boolean): Promise<void>;
+  };
+  ministerios: {
+    listar(sedeId: string): Promise<Ministerio[]>;
+    crear(sedeId: string, datos: DatosMinisterio): Promise<void>;
+    cambiarCoordinador(id: string, miembroId: string | undefined): Promise<void>;
+    agregarIntegrante(id: string, miembroId: string): Promise<void>;
+    quitarIntegrante(id: string, miembroId: string): Promise<void>;
+  };
+  asistencias: {
+    // Solo las de eventos que el usuario puede gestionar
+    listar(sedeId: string): Promise<Asistencia[]>;
+    guardar(eventoId: string, registros: Asistencia[]): Promise<void>;
+  };
+  anuncios: {
+    // Los de la sede y los dirigidos a todas las sedes
+    listar(sedeId: string): Promise<Anuncio[]>;
+    crear(datos: DatosAnuncio): Promise<void>;
+    editar(id: string, datos: DatosAnuncio): Promise<void>;
     eliminar(id: string): Promise<void>;
   };
 }

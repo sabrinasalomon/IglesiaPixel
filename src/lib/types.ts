@@ -111,6 +111,7 @@ export interface Anuncio {
   fechaPublicacion: string;
   importante: boolean;
   autorId: string;
+  autorNombre?: string;
 }
 
 export interface Horario {

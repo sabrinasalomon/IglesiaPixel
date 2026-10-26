@@ -1,8 +1,8 @@
 # Pruebas de permisos
 
-`permisos.sql` comprueba las políticas de seguridad (RLS) de la Fase 1 con
-usuarios de cada rol: qué filas ve cada uno y qué cambios le rechaza la base
-de datos.
+`permisos.sql` (Fase 1) y `permisos_fase2.sql` (Fase 2) comprueban las
+políticas de seguridad (RLS) con usuarios de cada rol: qué filas ve cada uno y
+qué cambios le rechaza la base de datos.
 
 Se pueden correr en un PostgreSQL 16 local sin Supabase:
 
@@ -10,8 +10,11 @@ Se pueden correr en un PostgreSQL 16 local sin Supabase:
 createdb prueba
 psql -d prueba -f supabase/pruebas/entorno_simulado.sql \
                -f supabase/migrations/20261026000001_fase1_esquema.sql \
+               -f supabase/migrations/20261026000002_fase2_esquema.sql \
                -f supabase/seed.sql \
-               -f supabase/pruebas/permisos.sql
+               -f supabase/seed_fase2.sql \
+               -f supabase/pruebas/permisos.sql \
+               -f supabase/pruebas/permisos_fase2.sql
 ```
 
 `entorno_simulado.sql` crea lo mínimo que Supabase trae de fábrica (roles

@@ -1,13 +1,19 @@
 import type { BaseDatos } from "../datos-ejemplo";
 import { nuevoId } from "../ids";
+import type { Ministerio, Usuario } from "../types";
 import type { Repositorio } from "./tipos";
 
 // Implementación sobre los datos de demostración en memoria
 export function repositorioDemo(
   leer: () => BaseDatos,
-  actualizar: (cambio: (db: BaseDatos) => BaseDatos) => void
+  actualizar: (cambio: (db: BaseDatos) => BaseDatos) => void,
+  usuarioActual: () => Usuario | null
 ): Repositorio {
   const listo = () => Promise.resolve();
+  const cambiarMinisterio = (id: string, cambio: (m: Ministerio) => Ministerio) => {
+    actualizar((db) => ({ ...db, ministerios: db.ministerios.map((m) => (m.id === id ? cambio(m) : m)) }));
+    return listo();
+  };
 
   return {
     miembros: {
@@ -37,10 +43,10 @@ export function repositorioDemo(
     },
     usuarios: {
       listar: async () => leer().usuarios,
-      invitar: ({ nombre, correo, rol, sedeId }) => {
+      invitar: ({ nombre, correo, rol, sedeId, miembroId }) => {
         actualizar((db) => ({
           ...db,
-          usuarios: [...db.usuarios, { id: nuevoId("u"), nombre, correo, rol, sedeId, activo: true }],
+          usuarios: [...db.usuarios, { id: nuevoId("u"), nombre, correo, rol, sedeId, miembroId, activo: true }],
         }));
         return listo();
       },
@@ -65,6 +71,74 @@ export function repositorioDemo(
       },
       eliminar: (id) => {
         actualizar((db) => ({ ...db, horarios: db.horarios.filter((h) => h.id !== id) }));
+        return listo();
+      },
+    },
+    eventos: {
+      listar: async (sedeId) => leer().eventos.filter((e) => e.sedeId === sedeId),
+      crear: (sedeId, d) => {
+        actualizar((db) => ({ ...db, eventos: [...db.eventos, { id: nuevoId("e"), sedeId, cancelado: false, ...d }] }));
+        return listo();
+      },
+      editar: (id, d) => {
+        actualizar((db) => ({ ...db, eventos: db.eventos.map((e) => (e.id === id ? { ...e, ...d } : e)) }));
+        return listo();
+      },
+      cambiarCancelado: (id, cancelado) => {
+        actualizar((db) => ({ ...db, eventos: db.eventos.map((e) => (e.id === id ? { ...e, cancelado } : e)) }));
+        return listo();
+      },
+    },
+    ministerios: {
+      listar: async (sedeId) => leer().ministerios.filter((m) => m.sedeId === sedeId),
+      crear: (sedeId, d) => {
+        const integrantes = d.coordinadorId ? [d.coordinadorId] : [];
+        actualizar((db) => ({ ...db, ministerios: [...db.ministerios, { id: nuevoId("min"), sedeId, integrantes, ...d }] }));
+        return listo();
+      },
+      cambiarCoordinador: (id, coordinadorId) => cambiarMinisterio(id, (m) => ({ ...m, coordinadorId })),
+      agregarIntegrante: (id, miembroId) => cambiarMinisterio(id, (m) => ({ ...m, integrantes: [...m.integrantes, miembroId] })),
+      quitarIntegrante: (id, miembroId) =>
+        cambiarMinisterio(id, (m) => ({ ...m, integrantes: m.integrantes.filter((x) => x !== miembroId) })),
+    },
+    asistencias: {
+      listar: async (sedeId) => {
+        const db = leer();
+        const ids = new Set(db.eventos.filter((e) => e.sedeId === sedeId).map((e) => e.id));
+        return db.asistencias.filter((a) => ids.has(a.eventoId));
+      },
+      guardar: (eventoId, registros) => {
+        actualizar((db) => ({
+          ...db,
+          asistencias: [
+            ...db.asistencias.filter((a) => !(a.eventoId === eventoId && registros.some((r) => r.miembroId === a.miembroId))),
+            ...registros,
+          ],
+        }));
+        return listo();
+      },
+    },
+    anuncios: {
+      listar: async (sedeId) => {
+        const db = leer();
+        return db.anuncios
+          .filter((a) => a.sedeId === null || a.sedeId === sedeId)
+          .map((a) => ({ ...a, autorNombre: db.usuarios.find((u) => u.id === a.autorId)?.nombre ?? "" }));
+      },
+      crear: (d) => {
+        const autor = usuarioActual();
+        actualizar((db) => ({
+          ...db,
+          anuncios: [{ id: nuevoId("an"), autorId: autor?.id ?? "", autorNombre: autor?.nombre ?? "", ...d }, ...db.anuncios],
+        }));
+        return listo();
+      },
+      editar: (id, d) => {
+        actualizar((db) => ({ ...db, anuncios: db.anuncios.map((a) => (a.id === id ? { ...a, ...d } : a)) }));
+        return listo();
+      },
+      eliminar: (id) => {
+        actualizar((db) => ({ ...db, anuncios: db.anuncios.filter((a) => a.id !== id) }));
         return listo();
       },
     },
