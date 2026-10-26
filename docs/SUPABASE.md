@@ -44,20 +44,20 @@ Estas direcciones son a donde llevan los correos de invitación y de recuperaci�
 ## 6. Conectar la aplicación
 
 1. Ve a **Project Settings → API Keys** (o **Data API**) y copia:
-   - **Project URL**
-   - la llave **anon / public**
-   - la llave **service_role** (es secreta: permite crear cuentas)
+   - **Project URL** (solo `https://xxxxxxxx.supabase.co`, sin `/rest/v1/`)
+   - la llave pública: **Publishable key** (`sb_publishable_…`) o, en proyectos antiguos, **anon / public**
+   - la llave secreta: **Secret key** (`sb_secret_…`) o **service_role**. Permite crear cuentas: no la compartas
 2. En la carpeta del proyecto copia `.env.example` como `.env.local` y pega los valores:
 
    ```
    NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxx.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-   SUPABASE_SERVICE_ROLE_KEY=eyJ...
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
+   SUPABASE_SERVICE_ROLE_KEY=sb_secret_...
    ```
 
 3. Ejecuta `npm run dev`, abre http://localhost:3000 y entra con el administrador del paso 5.
 
-`.env.local` está en `.gitignore`: nunca subas la llave `service_role` al repositorio ni la compartas.
+`.env.local` está en `.gitignore`: nunca subas la llave secreta al repositorio ni la pegues en chats o correos. Si se expone, crea una nueva en **API Keys** y borra la anterior.
 
 ## 7. Invitar al equipo
 
