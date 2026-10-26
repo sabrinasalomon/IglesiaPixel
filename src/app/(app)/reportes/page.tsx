@@ -1,12 +1,15 @@
 "use client";
 
 import { FileSpreadsheet, FileText } from "lucide-react";
-import { useMemo, useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, SinAcceso, Tabla, Tarjeta, td, th } from "@/components/ui";
+import { useCallback, useMemo, useState } from "react";
+import { Boton, Campo, Encabezado, Entrada, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
 import { iso } from "@/lib/datos-ejemplo";
 import { aFecha, fechaCorta, mesCorto, mxn } from "@/lib/formato";
 import { reportesPermitidos } from "@/lib/permisos";
-import { useDatos, useSede } from "@/lib/store";
+import { exportarExcel, exportarPdf, type Reporte, type Valor } from "@/lib/exportar";
+import { useDatos } from "@/lib/store";
+import type { Aportacion, Asistencia, Evento, Miembro, Ministerio } from "@/lib/types";
+import { intentar, useCarga } from "@/lib/usar-carga";
 
 const NOMBRES: Record<string, string> = {
   miembros: "Miembros",
@@ -15,25 +18,36 @@ const NOMBRES: Record<string, string> = {
   ingresos: "Ingresos por periodo",
 };
 
-type Fila = (string | number)[];
-
-// Exportación a Excel como CSV (Excel lo abre directamente). En la Fase 3 se
-// genera .xlsx y PDF en el servidor; aquí el PDF usa la impresión del navegador.
-function descargarCsv(nombre: string, columnas: string[], filas: Fila[]) {
-  const celda = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
-  const csv = [columnas, ...filas].map((f) => f.map(celda).join(",")).join("\r\n");
-  const url = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${nombre}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+interface Datos {
+  miembros: Miembro[];
+  eventos: Evento[];
+  ministerios: Ministerio[];
+  asistencias: Asistencia[];
+  aportaciones: Aportacion[];
 }
 
 export default function Reportes() {
-  const { db, usuario, hoy } = useDatos();
-  const { sede, miembros, eventos, ministerios, aportaciones, misMinisterios } = useSede();
+  const { db, usuario, repo, sedeId, hoy } = useDatos();
+  const sede = db.sedes.find((s) => s.id === sedeId);
   const permitidos = reportesPermitidos(usuario!.rol);
+  // Cada rol carga solo lo que necesitan sus reportes
+  const rol = usuario!.rol;
+  const cargar = useCallback(async (): Promise<Datos> => {
+    const usa = (r: string) => reportesPermitidos(rol).includes(r);
+    const nada = Promise.resolve([]);
+    const [miembros, eventos, ministerios, asistencias, aportaciones] = await Promise.all([
+      usa("miembros") || usa("ministerios") ? repo.miembros.listar(sedeId) : nada,
+      usa("asistencia") || usa("ministerios") ? repo.eventos.listar(sedeId) : nada,
+      usa("miembros") || usa("ministerios") || usa("asistencia") ? repo.ministerios.listar(sedeId) : nada,
+      usa("asistencia") || usa("ministerios") ? repo.asistencias.listar(sedeId) : nada,
+      usa("ingresos") ? repo.aportaciones.listar(sedeId) : nada,
+    ]);
+    return { miembros, eventos, ministerios, asistencias, aportaciones };
+  }, [repo, sedeId, rol]);
+  const { datos, cargando, error } = useCarga<Datos>(cargar, { miembros: [], eventos: [], ministerios: [], asistencias: [], aportaciones: [] });
+  const { miembros, eventos, ministerios, asistencias, aportaciones } = datos;
+  const [exportando, setExportando] = useState(false);
+  const [errorExportar, setErrorExportar] = useState("");
   const [tipo, setTipo] = useState(permitidos[0]);
   const hace3Meses = useMemo(() => {
     const d = aFecha(hoy);
@@ -44,9 +58,12 @@ export default function Reportes() {
   const [hasta, setHasta] = useState(hoy);
 
   const soloMios = usuario!.rol === "coordinador";
-  const minsVisibles = soloMios ? misMinisterios : ministerios;
+  const minsVisibles = useMemo(
+    () => (soloMios ? ministerios.filter((m) => usuario!.miembroId && m.coordinadorId === usuario!.miembroId) : ministerios),
+    [soloMios, ministerios, usuario]
+  );
 
-  const reporte = useMemo((): { columnas: string[]; filas: Fila[]; formato?: (i: number, v: string | number) => string } => {
+  const reporte = useMemo((): { columnas: string[]; filas: Valor[][]; moneda?: number[] } => {
     const enPeriodo = (f: string) => f >= desde && f <= hasta;
     switch (tipo) {
       case "miembros":
@@ -68,7 +85,7 @@ export default function Reportes() {
             .filter((e) => !soloMios || (e.ministerioId && ids.has(e.ministerioId)))
             .sort((a, b) => b.fecha.localeCompare(a.fecha))
             .map((e) => {
-              const regs = db.asistencias.filter((a) => a.eventoId === e.id);
+              const regs = asistencias.filter((a) => a.eventoId === e.id);
               const p = regs.filter((a) => a.presente).length;
               return [fechaCorta(e.fecha), e.titulo, p, regs.length - p, regs.length ? `${Math.round((p / regs.length) * 100)}%` : "—"];
             }),
@@ -79,14 +96,14 @@ export default function Reportes() {
           columnas: ["Ministerio", "Coordinador", "Integrantes", "Actividades en el periodo", "Asistencia promedio"],
           filas: minsVisibles.map((m) => {
             const acts = eventos.filter((e) => e.ministerioId === m.id && enPeriodo(e.fecha) && !e.cancelado);
-            const regs = db.asistencias.filter((a) => acts.some((e) => e.id === a.eventoId));
+            const regs = asistencias.filter((a) => acts.some((e) => e.id === a.eventoId));
             const prom = regs.length ? `${Math.round((regs.filter((a) => a.presente).length / regs.length) * 100)}%` : "—";
             return [m.nombre, miembros.find((x) => x.id === m.coordinadorId)?.nombre ?? "Sin asignar", m.integrantes.length, acts.length, prom];
           }),
         };
       case "ingresos": {
         const t = new Map<string, Record<string, number>>();
-        aportaciones.filter((a) => enPeriodo(a.fecha)).forEach((a) => {
+        aportaciones.filter((a) => enPeriodo(a.fecha) && !a.anulada).forEach((a) => {
           const k = a.fecha.slice(0, 7);
           const r = t.get(k) ?? { Diezmo: 0, Ofrenda: 0, Otros: 0, n: 0 };
           const c = a.concepto === "Diezmo" || a.concepto === "Ofrenda" ? a.concepto : "Otros";
@@ -99,34 +116,46 @@ export default function Reportes() {
           filas: [...t.entries()]
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([mes, r]) => [mesCorto(mes), r.Diezmo, r.Ofrenda, r.Otros, r.Diezmo + r.Ofrenda + r.Otros, r.n]),
-          formato: (i, v) => (i >= 1 && i <= 4 ? mxn(Number(v)) : String(v)),
+          moneda: [1, 2, 3, 4],
         };
       }
       default:
         return { columnas: [], filas: [] };
     }
-  }, [tipo, desde, hasta, miembros, ministerios, minsVisibles, eventos, aportaciones, db.asistencias, hoy, soloMios]);
+  }, [tipo, desde, hasta, miembros, ministerios, minsVisibles, eventos, aportaciones, asistencias, hoy, soloMios]);
 
   if (!permitidos.length) return <SinAcceso />;
   const usaPeriodo = tipo !== "miembros";
+  const completo: Reporte = {
+    titulo: NOMBRES[tipo],
+    subtitulo: `${db.configuracion.nombre} · ${sede?.nombre ?? ""}${usaPeriodo ? ` · del ${fechaCorta(desde)} al ${fechaCorta(hasta)}` : ""}`,
+    ...reporte,
+  };
+  const exportar = async (formato: "excel" | "pdf") => {
+    setExportando(true);
+    setErrorExportar(await intentar(() => (formato === "excel" ? exportarExcel(completo) : exportarPdf(completo))));
+    setExportando(false);
+  };
+  const mostrar = (i: number, v: Valor) => (reporte.moneda?.includes(i) ? mxn(Number(v)) : v);
 
   return (
     <>
       <div className="print:hidden">
         <Encabezado
           titulo="Reportes"
-          descripcion={`Información de ${sede.nombre}`}
+          descripcion={`Información de ${sede?.nombre ?? ""}`}
           acciones={
             <>
-              <Boton variante="secundario" onClick={() => descargarCsv(`${tipo}-${sede.nombre}`, reporte.columnas, reporte.filas)}>
+              <Boton variante="secundario" disabled={exportando || cargando} onClick={() => exportar("excel")}>
                 <FileSpreadsheet size={16} /> Exportar a Excel
               </Boton>
-              <Boton variante="secundario" onClick={() => window.print()}>
+              <Boton variante="secundario" disabled={exportando || cargando} onClick={() => exportar("pdf")}>
                 <FileText size={16} /> Exportar a PDF
               </Boton>
             </>
           }
         />
+        {(error || errorExportar) && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorExportar}</p>}
         <div className="mb-4 flex flex-wrap gap-2">
           {permitidos.map((p) => (
             <button
@@ -144,10 +173,7 @@ export default function Reportes() {
         <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 p-4">
           <div>
             <h2 className="font-semibold">{NOMBRES[tipo]}</h2>
-            <p className="text-xs text-slate-500">
-              {db.configuracion.nombre} · {sede.nombre}
-              {usaPeriodo && ` · del ${fechaCorta(desde)} al ${fechaCorta(hasta)}`}
-            </p>
+            <p className="text-xs text-slate-500">{completo.subtitulo}</p>
           </div>
           {usaPeriodo && (
             <div className="flex gap-2 print:hidden">
@@ -163,12 +189,12 @@ export default function Reportes() {
           <tbody>
             {reporte.filas.map((f, i) => (
               <tr key={i}>
-                {f.map((v, j) => <td key={j} className={`${td} ${j > 0 && j < 4 ? "whitespace-nowrap" : ""}`}>{reporte.formato ? reporte.formato(j, v) : v}</td>)}
+                {f.map((v, j) => <td key={j} className={`${td} ${j > 0 && j < 4 ? "whitespace-nowrap" : ""}`}>{mostrar(j, v)}</td>)}
               </tr>
             ))}
           </tbody>
         </Tabla>
-        <p className="p-4 text-xs text-slate-500">{reporte.filas.length} registros</p>
+        {cargando ? <Vacio>Cargando…</Vacio> : <p className="p-4 text-xs text-slate-500">{reporte.filas.length} registros</p>}
       </Tarjeta>
     </>
   );

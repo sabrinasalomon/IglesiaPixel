@@ -23,7 +23,7 @@ export interface Usuario {
   nombre: string;
   correo: string;
   rol: Rol;
-  sedeId: string;
+  sedeId: string | null;
   miembroId?: string;
   activo: boolean;
 }
@@ -101,6 +101,7 @@ export interface Aportacion {
   metodo: MetodoPago;
   miembroId?: string; // vacío = anónima
   registradoPor: string; // id de usuario
+  anulada?: boolean; // las aportaciones no se borran: se anulan
 }
 
 export interface Anuncio {
@@ -111,6 +112,7 @@ export interface Anuncio {
   fechaPublicacion: string;
   importante: boolean;
   autorId: string;
+  autorNombre?: string;
 }
 
 export interface Horario {
@@ -124,4 +126,5 @@ export interface Horario {
 export interface ConfiguracionIglesia {
   nombre: string;
   lema: string;
+  logoUrl?: string | null;
 }

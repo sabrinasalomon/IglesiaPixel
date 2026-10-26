@@ -2,26 +2,58 @@
 
 import { CalendarDays, ClipboardCheck, HandCoins, Users, UsersRound } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Encabezado, Etiqueta, Indicador, Tarjeta } from "@/components/ui";
 import { fechaCorta, fechaLarga, mesCorto, mxn } from "@/lib/formato";
-import { veFinanzas } from "@/lib/permisos";
-import { useDatos, useSede } from "@/lib/store";
+import { puedeVer, veFinanzas } from "@/lib/permisos";
+import { useDatos } from "@/lib/store";
+import type { Anuncio, Aportacion, Asistencia, Evento, Miembro, Ministerio } from "@/lib/types";
+import { useCarga } from "@/lib/usar-carga";
 
+interface DatosPanel {
+  miembros: Miembro[];
+  eventos: Evento[];
+  ministerios: Ministerio[];
+  asistencias: Asistencia[];
+  aportaciones: Aportacion[];
+  anuncios: Anuncio[];
+}
+
+const VACIO: DatosPanel = { miembros: [], eventos: [], ministerios: [], asistencias: [], aportaciones: [], anuncios: [] };
+
+// Panel principal: indicadores de la sede activa. Cada rol solo carga lo que
+// puede ver; las cifras financieras son para administrador, pastor y tesorero.
 export default function Panel() {
-  const { db, usuario, hoy } = useDatos();
-  const { sede, miembros, eventos, ministerios, aportaciones, anuncios } = useSede();
-  const finanzas = veFinanzas(usuario!.rol);
+  const { db, usuario, repo, sedeId, hoy } = useDatos();
+  const sede = db.sedes.find((s) => s.id === sedeId);
+  const rol = usuario!.rol;
+  const finanzas = veFinanzas(rol);
+  const veAsistencia = puedeVer(rol, "asistencia");
   const mesActual = hoy.slice(0, 7);
 
+  const cargar = useCallback(async (): Promise<DatosPanel> => {
+    const nada = Promise.resolve([]);
+    const [miembros, eventos, ministerios, asistencias, aportaciones, anuncios] = await Promise.all([
+      repo.miembros.listar(sedeId),
+      repo.eventos.listar(sedeId),
+      puedeVer(rol, "ministerios") ? repo.ministerios.listar(sedeId) : nada,
+      veAsistencia ? repo.asistencias.listar(sedeId) : nada,
+      finanzas ? repo.aportaciones.listar(sedeId) : nada,
+      repo.anuncios.listar(sedeId),
+    ]);
+    return { miembros, eventos, ministerios, asistencias, aportaciones, anuncios };
+  }, [repo, sedeId, rol, veAsistencia, finanzas]);
+  const { datos: d } = useCarga<DatosPanel>(cargar, VACIO);
+  const { miembros, ministerios, anuncios } = d;
+
   const datos = useMemo(() => {
-    const idsEventos = new Set(eventos.map((e) => e.id));
-    const asistenciasSede = db.asistencias.filter((a) => idsEventos.has(a.eventoId) && a.presente);
+    const eventos = d.eventos.filter((e) => !e.cancelado);
+    const presentes = d.asistencias.filter((a) => a.presente);
     const eventosDelMes = new Set(eventos.filter((e) => e.fecha.startsWith(mesActual)).map((e) => e.id));
 
     const proximos = eventos
-      .filter((e) => e.fecha >= hoy && !e.cancelado)
+      .filter((e) => e.fecha >= hoy)
       .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
 
     // Asistencia a los últimos 8 cultos dominicales
@@ -31,15 +63,17 @@ export default function Panel() {
       .slice(-8)
       .map((e) => ({
         fecha: fechaCorta(e.fecha).replace(/ \d{4}$/, ""),
-        asistentes: asistenciasSede.filter((a) => a.eventoId === e.id).length,
+        asistentes: presentes.filter((a) => a.eventoId === e.id).length,
       }));
 
-    // Ingresos de los últimos 6 meses
+    // Ingresos de los últimos 6 meses (sin las aportaciones anuladas)
     const porMes = new Map<string, number>();
-    aportaciones.forEach((a) => {
-      const clave = a.fecha.slice(0, 7);
-      porMes.set(clave, (porMes.get(clave) ?? 0) + a.monto);
-    });
+    d.aportaciones
+      .filter((a) => !a.anulada)
+      .forEach((a) => {
+        const clave = a.fecha.slice(0, 7);
+        porMes.set(clave, (porMes.get(clave) ?? 0) + a.monto);
+      });
     const ingresos = [...porMes.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .slice(-6)
@@ -48,12 +82,12 @@ export default function Panel() {
     return {
       activos: miembros.filter((m) => m.activo).length,
       proximos,
-      asistenciasMes: asistenciasSede.filter((a) => eventosDelMes.has(a.eventoId)).length,
+      asistenciasMes: presentes.filter((a) => eventosDelMes.has(a.eventoId)).length,
       cultos,
       ingresos,
       ingresoMes: porMes.get(mesActual) ?? 0,
     };
-  }, [db.asistencias, eventos, miembros, aportaciones, hoy, mesActual]);
+  }, [d, miembros, hoy, mesActual]);
 
   const avisos = anuncios
     .filter((a) => a.fechaPublicacion <= hoy)
@@ -62,12 +96,14 @@ export default function Panel() {
 
   return (
     <>
-      <Encabezado titulo={`Hola, ${usuario!.nombre.split(" ")[0]}`} descripcion={`Resumen de ${sede.nombre} · ${fechaLarga(hoy)}`} />
+      <Encabezado titulo={`Hola, ${usuario!.nombre.split(" ")[0]}`} descripcion={`Resumen de ${sede?.nombre ?? ""} · ${fechaLarga(hoy)}`} />
 
-      <div className={`grid gap-4 sm:grid-cols-2 ${finanzas ? "xl:grid-cols-5" : "xl:grid-cols-4"}`}>
+      <div className={`grid gap-4 sm:grid-cols-2 ${finanzas && veAsistencia ? "xl:grid-cols-5" : "xl:grid-cols-4"}`}>
         <Indicador titulo="Miembros activos" valor={datos.activos} detalle={`de ${miembros.length} registrados`} icono={<Users size={18} />} />
         <Indicador titulo="Eventos próximos" valor={datos.proximos.length} detalle="programados desde hoy" icono={<CalendarDays size={18} />} />
-        <Indicador titulo="Asistencias del mes" valor={datos.asistenciasMes} detalle="presencias registradas" icono={<ClipboardCheck size={18} />} />
+        {veAsistencia && (
+          <Indicador titulo="Asistencias del mes" valor={datos.asistenciasMes} detalle="presencias registradas" icono={<ClipboardCheck size={18} />} />
+        )}
         <Indicador titulo="Ministerios" valor={ministerios.length} detalle="grupos de trabajo" icono={<UsersRound size={18} />} />
         {finanzas && (
           <Indicador titulo="Ingresos del mes" valor={mxn(datos.ingresoMes)} detalle="solo visible para roles autorizados" icono={<HandCoins size={18} />} />
@@ -75,21 +111,28 @@ export default function Panel() {
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <Tarjeta className="p-5">
-          <h2 className="font-semibold">Asistencia a cultos dominicales</h2>
-          <p className="mb-4 text-xs text-slate-500">Personas presentes en los últimos 8 domingos</p>
-          <div className="h-60">
-            <ResponsiveContainer>
-              <LineChart data={datos.cultos} margin={{ left: -20, right: 8 }}>
-                <CartesianGrid stroke="#e2e8f0" vertical={false} />
-                <XAxis dataKey="fecha" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                <Tooltip />
-                <Line type="monotone" dataKey="asistentes" name="Asistentes" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Tarjeta>
+        {veAsistencia ? (
+          <Tarjeta className="p-5">
+            <h2 className="font-semibold">Asistencia a cultos dominicales</h2>
+            <p className="mb-4 text-xs text-slate-500">Personas presentes en los últimos 8 domingos</p>
+            <div className="h-60">
+              <ResponsiveContainer>
+                <LineChart data={datos.cultos} margin={{ left: -20, right: 8 }}>
+                  <CartesianGrid stroke="#e2e8f0" vertical={false} />
+                  <XAxis dataKey="fecha" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="asistentes" name="Asistentes" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </Tarjeta>
+        ) : (
+          <Tarjeta className="p-5">
+            <h2 className="mb-3 font-semibold">Avisos</h2>
+            <ListaAvisos avisos={avisos} />
+          </Tarjeta>
+        )}
 
         {finanzas ? (
           <Tarjeta className="p-5">
@@ -133,7 +176,7 @@ export default function Panel() {
             ))}
           </ul>
         </Tarjeta>
-        {finanzas && (
+        {finanzas && veAsistencia && (
           <Tarjeta className="p-5">
             <h2 className="mb-3 font-semibold">Avisos</h2>
             <ListaAvisos avisos={avisos} />
@@ -144,9 +187,10 @@ export default function Panel() {
   );
 }
 
-function ListaAvisos({ avisos }: { avisos: ReturnType<typeof useSede>["anuncios"] }) {
+function ListaAvisos({ avisos }: { avisos: Anuncio[] }) {
   return (
     <ul className="space-y-3">
+      {avisos.length === 0 && <li className="text-sm text-slate-500">No hay avisos publicados.</li>}
       {avisos.map((a) => (
         <li key={a.id} className="rounded-lg border border-slate-100 p-3">
           <div className="flex items-center gap-2">

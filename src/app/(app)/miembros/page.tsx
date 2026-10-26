@@ -1,23 +1,30 @@
 "use client";
 
 import { Pencil, Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
 import { fechaCorta } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
-import { nuevoId, useDatos, useSede } from "@/lib/store";
+import type { DatosMiembro } from "@/lib/repositorio/tipos";
+import { useDatos } from "@/lib/store";
 import type { Miembro } from "@/lib/types";
+import { intentar, useCarga } from "@/lib/usar-carga";
 
 type Filtro = "todos" | "activos" | "inactivos";
-const vacio = { nombre: "", telefono: "", correo: "", fechaIngreso: "" };
+const vacio: DatosMiembro = { nombre: "", telefono: "", correo: "", fechaIngreso: "" };
 
 export default function Miembros() {
-  const { usuario, actualizar, sedeId, hoy } = useDatos();
-  const { miembros, sede } = useSede();
+  const { usuario, repo, sedeId, db, hoy } = useDatos();
+  const sede = db.sedes.find((s) => s.id === sedeId);
+  const cargar = useCallback(() => repo.miembros.listar(sedeId), [repo, sedeId]);
+  const { datos: miembros, cargando, error, recargar } = useCarga<Miembro[]>(cargar, []);
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("activos");
   const [editando, setEditando] = useState<Miembro | "nuevo" | null>(null);
   const [form, setForm] = useState(vacio);
+  const [errorForm, setErrorForm] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [errorAccion, setErrorAccion] = useState("");
 
   const permiso = acceso(usuario!.rol, "miembros");
   const puedeEditar = permiso === "total";
@@ -34,33 +41,34 @@ export default function Miembros() {
 
   const abrir = (m: Miembro | "nuevo") => {
     setEditando(m);
+    setErrorForm("");
     setForm(m === "nuevo" ? { ...vacio, fechaIngreso: hoy } : { nombre: m.nombre, telefono: m.telefono, correo: m.correo, fechaIngreso: m.fechaIngreso });
   };
 
-  const guardar = () => {
-    if (!form.nombre.trim()) return;
-    actualizar((db) => ({
-      ...db,
-      miembros:
-        editando === "nuevo"
-          ? [...db.miembros, { id: nuevoId("m"), sedeId, activo: true, ...form }]
-          : db.miembros.map((m) => (m.id === (editando as Miembro).id ? { ...m, ...form } : m)),
-    }));
+  const guardar = async () => {
+    if (!form.nombre.trim()) return setErrorForm("El nombre es obligatorio.");
+    setGuardando(true);
+    const fallo = await intentar(() =>
+      editando === "nuevo" ? repo.miembros.crear(sedeId, form) : repo.miembros.editar((editando as Miembro).id, form)
+    );
+    setGuardando(false);
+    if (fallo) return setErrorForm(fallo);
     setEditando(null);
+    recargar();
   };
 
   // Baja lógica: el registro se conserva y puede reactivarse
-  const alternarEstado = (id: string) =>
-    actualizar((db) => ({
-      ...db,
-      miembros: db.miembros.map((m) => (m.id === id ? { ...m, activo: !m.activo } : m)),
-    }));
+  const alternarEstado = async (m: Miembro) => {
+    const fallo = await intentar(() => repo.miembros.cambiarEstado(m.id, !m.activo));
+    setErrorAccion(fallo);
+    recargar();
+  };
 
   return (
     <>
       <Encabezado
         titulo="Miembros"
-        descripcion={`${miembros.filter((m) => m.activo).length} activos en ${sede.nombre}`}
+        descripcion={`${miembros.filter((m) => m.activo).length} activos en ${sede?.nombre ?? ""}`}
         acciones={puedeEditar && <Boton onClick={() => abrir("nuevo")}><Plus size={16} /> Nuevo miembro</Boton>}
       />
       <Tarjeta>
@@ -75,6 +83,8 @@ export default function Miembros() {
             <option value="todos">Todos</option>
           </Selector>
         </div>
+        {errorAccion && <p className="m-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorAccion}</p>}
+        {error && <p className="m-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
         <Tabla>
           <thead>
             <tr>
@@ -97,7 +107,7 @@ export default function Miembros() {
                 {puedeEditar && (
                   <td className={`${td} whitespace-nowrap text-right`}>
                     <Boton variante="fantasma" onClick={() => abrir(m)} aria-label="Editar"><Pencil size={15} /></Boton>
-                    <Boton variante={m.activo ? "peligro" : "secundario"} className="ml-1 py-1" onClick={() => alternarEstado(m.id)}>
+                    <Boton variante={m.activo ? "peligro" : "secundario"} className="ml-1 py-1" onClick={() => alternarEstado(m)}>
                       {m.activo ? "Desactivar" : "Reactivar"}
                     </Boton>
                   </td>
@@ -106,14 +116,14 @@ export default function Miembros() {
             ))}
           </tbody>
         </Tabla>
-        {lista.length === 0 && <Vacio>No hay miembros que coincidan con la búsqueda.</Vacio>}
+        {cargando ? <Vacio>Cargando…</Vacio> : lista.length === 0 && <Vacio>No hay miembros que coincidan con la búsqueda.</Vacio>}
       </Tarjeta>
 
       <Modal
         titulo={editando === "nuevo" ? "Nuevo miembro" : "Editar miembro"}
         abierto={!!editando}
         alCerrar={() => setEditando(null)}
-        pie={<><Boton variante="secundario" onClick={() => setEditando(null)}>Cancelar</Boton><Boton onClick={guardar}>Guardar</Boton></>}
+        pie={<><Boton variante="secundario" onClick={() => setEditando(null)}>Cancelar</Boton><Boton disabled={guardando} onClick={guardar}>Guardar</Boton></>}
       >
         <Campo etiqueta="Nombre completo"><Entrada value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} /></Campo>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -121,6 +131,7 @@ export default function Miembros() {
           <Campo etiqueta="Fecha de ingreso"><Entrada type="date" value={form.fechaIngreso} onChange={(e) => setForm({ ...form, fechaIngreso: e.target.value })} /></Campo>
         </div>
         <Campo etiqueta="Correo electrónico"><Entrada type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} /></Campo>
+        {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
       </Modal>
     </>
   );

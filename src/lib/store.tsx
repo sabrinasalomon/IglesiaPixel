@@ -6,20 +6,36 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { generarDatos, iso, type BaseDatos } from "./datos-ejemplo";
-import type { Usuario } from "./types";
+import { repositorioDemo } from "./repositorio/demo";
+import { aUsuario, repositorioSupabase } from "./repositorio/supabase";
+import type { Repositorio } from "./repositorio/tipos";
+import { supabaseNavegador } from "./supabase/cliente";
+import { modoDemo } from "./supabase/config";
+import type { Sede, Usuario } from "./types";
 
-// Almacén del prototipo: datos ficticios en memoria + sesión de demostración.
-// En la Fase 1 se reemplaza por Supabase (auth + consultas por sede).
+export { nuevoId } from "./ids";
+
+// Estado global de la aplicación. Funciona en dos modos:
+// - demo: datos ficticios en memoria y usuarios de demostración
+// - supabase: sesión real; los módulos leen y escriben con `repo`
+// En modo supabase, `db` solo trae configuración, sedes y el perfil. Cada módulo
+// carga sus datos con `repo`, igual en los dos modos.
 
 interface Contexto {
+  modo: "demo" | "supabase";
   db: BaseDatos;
   actualizar: (cambio: (db: BaseDatos) => BaseDatos) => void;
+  repo: Repositorio;
   usuario: Usuario | null;
-  iniciarSesion: (usuarioId: string) => void;
-  cerrarSesion: () => void;
+  entrar: (correo: string, contrasena: string) => Promise<string | null>;
+  entrarDemo: (usuarioId: string) => void;
+  recuperar: (correo: string) => Promise<string | null>;
+  cerrarSesion: () => Promise<void>;
+  recargar: () => Promise<void>;
   sedeId: string;
   cambiarSede: (sedeId: string) => void;
   hoy: string;
@@ -28,72 +44,190 @@ interface Contexto {
 const Ctx = createContext<Contexto | null>(null);
 const CLAVE_SESION = "gi-sesion";
 
+const BASE_VACIA: BaseDatos = {
+  configuracion: { nombre: "", lema: "" },
+  sedes: [],
+  usuarios: [],
+  miembros: [],
+  eventos: [],
+  asistencias: [],
+  ministerios: [],
+  aportaciones: [],
+  anuncios: [],
+  horarios: [],
+};
+
+const leerSesionGuardada = () => {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_SESION) ?? "null") as { usuarioId?: string; sedeId?: string } | null;
+  } catch {
+    return null;
+  }
+};
+
+const guardarSesion = (usuarioId: string | null, sedeId: string) => {
+  try {
+    if (usuarioId) localStorage.setItem(CLAVE_SESION, JSON.stringify({ usuarioId, sedeId }));
+    else localStorage.removeItem(CLAVE_SESION);
+  } catch {
+    // almacenamiento no disponible
+  }
+};
+
 export function ProveedorDatos({ children }: { children: React.ReactNode }) {
   const [db, setDb] = useState<BaseDatos | null>(null);
+  const dbRef = useRef<BaseDatos>(BASE_VACIA);
   const [usuarioId, setUsuarioId] = useState<string | null>(null);
-  const [sedeId, setSedeId] = useState("s1");
+  const [sedeId, setSedeId] = useState("");
   const [hoy, setHoy] = useState("");
 
-  // Los datos dependen de la fecha actual, así que se generan en el navegador
+  // dbRef siempre tiene la versión más reciente, para leer justo después de un cambio
+  const fijarDb = useCallback((nueva: BaseDatos) => {
+    dbRef.current = nueva;
+    setDb(nueva);
+  }, []);
+
+  const actualizar = useCallback(
+    (cambio: (db: BaseDatos) => BaseDatos) => fijarDb(cambio(dbRef.current)),
+    [fijarDb]
+  );
+
+  // Carga de perfil, sedes y configuración desde Supabase
+  const recargar = useCallback(async () => {
+    if (modoDemo) return;
+    const supabase = supabaseNavegador();
+    const { data: cfg } = await supabase.from("configuracion_iglesia").select("*").eq("id", 1).maybeSingle();
+    const configuracion = {
+      nombre: cfg?.nombre ?? "Gestión de Iglesias",
+      lema: cfg?.lema ?? "",
+      logoUrl: cfg?.logo_url ?? null,
+    };
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setUsuarioId(null);
+      fijarDb({ ...BASE_VACIA, configuracion });
+      return;
+    }
+
+    const [{ data: perfil }, { data: sedes }] = await Promise.all([
+      supabase.from("usuarios").select("*").eq("id", user.id).maybeSingle(),
+      supabase.from("sedes").select("*").order("creado_en"),
+    ]);
+    const usuario: Usuario = perfil
+      ? aUsuario(perfil)
+      : { id: user.id, nombre: user.email ?? "", correo: user.email ?? "", rol: "miembro", sedeId: null, activo: false };
+    const listaSedes: Sede[] = (sedes ?? []).map((s) => ({
+      id: s.id,
+      nombre: s.nombre,
+      direccion: s.direccion,
+      telefono: s.telefono,
+      correo: s.correo,
+      activa: s.activa,
+    }));
+
+    fijarDb({ ...BASE_VACIA, configuracion, sedes: listaSedes, usuarios: [usuario] });
+    setUsuarioId(usuario.id);
+    setSedeId((actual) => {
+      // Solo el administrador elige sede; el resto trabaja en la suya
+      if (usuario.rol !== "administrador") return usuario.sedeId ?? "";
+      const guardada = leerSesionGuardada()?.sedeId;
+      const candidata = [actual, guardada, usuario.sedeId].find((s) => s && listaSedes.some((x) => x.id === s));
+      return candidata ?? listaSedes[0]?.id ?? "";
+    });
+  }, [fijarDb]);
+
   useEffect(() => {
     const ahora = new Date();
     setHoy(iso(ahora));
-    setDb(generarDatos(ahora));
-    try {
-      const guardada = JSON.parse(localStorage.getItem(CLAVE_SESION) ?? "null");
-      if (guardada) {
+
+    if (modoDemo) {
+      fijarDb(generarDatos(ahora));
+      const guardada = leerSesionGuardada();
+      if (guardada?.usuarioId) {
         setUsuarioId(guardada.usuarioId);
-        setSedeId(guardada.sedeId);
+        setSedeId(guardada.sedeId ?? "s1");
       }
-    } catch {
-      // sin sesión guardada
+      return;
     }
-  }, []);
 
-  const guardar = (u: string | null, s: string) => {
-    try {
-      if (u) localStorage.setItem(CLAVE_SESION, JSON.stringify({ usuarioId: u, sedeId: s }));
-      else localStorage.removeItem(CLAVE_SESION);
-    } catch {
-      // almacenamiento no disponible
-    }
-  };
-
-  const actualizar = useCallback(
-    (cambio: (db: BaseDatos) => BaseDatos) => setDb((d) => (d ? cambio(d) : d)),
-    []
-  );
+    recargar();
+    const { data } = supabaseNavegador().auth.onAuthStateChange((evento) => {
+      // No se consulta dentro del callback para no bloquear al cliente de auth
+      if (evento === "SIGNED_IN" || evento === "SIGNED_OUT" || evento === "USER_UPDATED") {
+        setTimeout(recargar, 0);
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, [recargar, fijarDb]);
 
   const usuario = useMemo(
     () => db?.usuarios.find((u) => u.id === usuarioId) ?? null,
     [db, usuarioId]
   );
+  const usuarioRef = useRef(usuario);
+  usuarioRef.current = usuario;
+
+  const repo = useMemo(
+    () => (modoDemo ? repositorioDemo(() => dbRef.current, actualizar, () => usuarioRef.current) : repositorioSupabase()),
+    [actualizar]
+  );
 
   const valor = useMemo<Contexto | null>(() => {
     if (!db) return null;
     return {
+      modo: modoDemo ? "demo" : "supabase",
       db,
       actualizar,
+      repo,
       usuario,
       hoy,
       sedeId,
-      iniciarSesion: (id) => {
+      recargar,
+      entrarDemo: (id) => {
         const u = db.usuarios.find((x) => x.id === id);
         if (!u) return;
         setUsuarioId(id);
-        setSedeId(u.sedeId);
-        guardar(id, u.sedeId);
+        setSedeId(u.sedeId ?? "");
+        guardarSesion(id, u.sedeId ?? "");
       },
-      cerrarSesion: () => {
+      entrar: async (correo, contrasena) => {
+        if (modoDemo) {
+          const u = db.usuarios.find((x) => x.correo === correo.trim().toLowerCase());
+          if (!u || !contrasena) return "Correo o contraseña incorrectos.";
+          setUsuarioId(u.id);
+          setSedeId(u.sedeId ?? "");
+          guardarSesion(u.id, u.sedeId ?? "");
+          return null;
+        }
+        const { error } = await supabaseNavegador().auth.signInWithPassword({
+          email: correo.trim(),
+          password: contrasena,
+        });
+        if (error) return "Correo o contraseña incorrectos.";
+        await recargar();
+        return null;
+      },
+      recuperar: async (correo) => {
+        if (modoDemo) return null;
+        const { error } = await supabaseNavegador().auth.resetPasswordForEmail(correo.trim(), {
+          redirectTo: `${window.location.origin}/restablecer`,
+        });
+        return error ? "No se pudo enviar el correo. Intenta de nuevo en unos minutos." : null;
+      },
+      cerrarSesion: async () => {
+        if (!modoDemo) await supabaseNavegador().auth.signOut();
         setUsuarioId(null);
-        guardar(null, sedeId);
+        guardarSesion(null, sedeId);
       },
       cambiarSede: (s) => {
         setSedeId(s);
-        guardar(usuarioId, s);
+        guardarSesion(usuarioId, s);
       },
     };
-  }, [db, actualizar, usuario, hoy, sedeId, usuarioId]);
+  }, [db, actualizar, repo, usuario, hoy, sedeId, usuarioId, recargar]);
 
   if (!valor) {
     return (
@@ -110,30 +244,3 @@ export function useDatos() {
   if (!c) throw new Error("useDatos debe usarse dentro de ProveedorDatos");
   return c;
 }
-
-// Atajos con los datos de la sede activa
-export function useSede() {
-  const { db, sedeId, usuario } = useDatos();
-  return useMemo(() => {
-    const sede = db.sedes.find((s) => s.id === sedeId)!;
-    const deSede = <T extends { sedeId: string | null }>(lista: T[]) =>
-      lista.filter((x) => x.sedeId === sedeId);
-    // Ministerios que coordina el usuario (para el rol Coordinador)
-    const misMinisterios = db.ministerios.filter(
-      (m) => usuario?.miembroId && m.coordinadorId === usuario.miembroId
-    );
-    return {
-      sede,
-      miembros: deSede(db.miembros),
-      eventos: deSede(db.eventos),
-      ministerios: deSede(db.ministerios),
-      aportaciones: deSede(db.aportaciones),
-      anuncios: db.anuncios.filter((a) => a.sedeId === null || a.sedeId === sedeId),
-      horarios: deSede(db.horarios),
-      misMinisterios,
-    };
-  }, [db, sedeId, usuario]);
-}
-
-export const nuevoId = (prefijo: string) =>
-  `${prefijo}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;

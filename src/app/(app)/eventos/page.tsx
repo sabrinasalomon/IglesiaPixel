@@ -1,26 +1,44 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AreaTexto, Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tarjeta } from "@/components/ui";
 import { TIPOS_EVENTO } from "@/lib/catalogos";
 import { iso } from "@/lib/datos-ejemplo";
 import { aFecha, fechaLarga, MESES } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
-import { nuevoId, useDatos, useSede } from "@/lib/store";
-import type { Evento, TipoEvento } from "@/lib/types";
+import { useDatos } from "@/lib/store";
+import type { Evento, Miembro, Ministerio, TipoEvento } from "@/lib/types";
+import { intentar, useCarga } from "@/lib/usar-carga";
 
 const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 type Form = Omit<Evento, "id" | "sedeId" | "cancelado">;
 
 export default function Eventos() {
-  const { usuario, actualizar, sedeId, hoy } = useDatos();
-  const { eventos, miembros, ministerios, misMinisterios } = useSede();
+  const { usuario, repo, sedeId, hoy } = useDatos();
+  const cargar = useCallback(async () => {
+    const [eventos, ministerios, miembros] = await Promise.all([
+      repo.eventos.listar(sedeId),
+      // El rol Miembro no ve ministerios ni la lista de miembros
+      usuario!.rol === "miembro" ? Promise.resolve([]) : repo.ministerios.listar(sedeId),
+      usuario!.rol === "miembro" ? Promise.resolve([]) : repo.miembros.listar(sedeId),
+    ]);
+    return { eventos, ministerios, miembros };
+  }, [repo, sedeId, usuario]);
+  const { datos, error, recargar } = useCarga<{ eventos: Evento[]; ministerios: Ministerio[]; miembros: Miembro[] }>(
+    cargar,
+    { eventos: [], ministerios: [], miembros: [] }
+  );
+  const { eventos, ministerios, miembros } = datos;
+  const misMinisterios = ministerios.filter((m) => usuario!.miembroId && m.coordinadorId === usuario!.miembroId);
   const [mes, setMes] = useState(() => hoy.slice(0, 7));
   const [seleccionado, setSeleccionado] = useState<Evento | null>(null);
   const [form, setForm] = useState<Form | null>(null);
   const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [errorForm, setErrorForm] = useState("");
+  const [errorAccion, setErrorAccion] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   const permiso = acceso(usuario!.rol, "eventos");
   const idsMios = new Set(misMinisterios.map((m) => m.id));
@@ -49,6 +67,7 @@ export default function Eventos() {
 
   const abrirNuevo = (fecha = hoy) => {
     setEditandoId(null);
+    setErrorForm("");
     setForm({
       titulo: "",
       tipo: permiso === "ministerio" ? "Reunión de ministerio" : "Culto dominical",
@@ -64,23 +83,28 @@ export default function Eventos() {
   const abrirEdicion = (e: Evento) => {
     setSeleccionado(null);
     setEditandoId(e.id);
+    setErrorForm("");
     setForm({ titulo: e.titulo, tipo: e.tipo, fecha: e.fecha, hora: e.hora, lugar: e.lugar, descripcion: e.descripcion, responsables: e.responsables, ministerioId: e.ministerioId });
   };
 
-  const guardar = () => {
-    if (!form || !form.titulo.trim()) return;
-    actualizar((db) => ({
-      ...db,
-      eventos: editandoId
-        ? db.eventos.map((e) => (e.id === editandoId ? { ...e, ...form } : e))
-        : [...db.eventos, { id: nuevoId("e"), sedeId, cancelado: false, ...form }],
-    }));
+  const guardar = async () => {
+    if (!form) return;
+    if (!form.titulo.trim()) return setErrorForm("El título es obligatorio.");
+    if (!form.fecha || !form.hora) return setErrorForm("Indica la fecha y la hora.");
+    setGuardando(true);
+    const fallo = await intentar(() => (editandoId ? repo.eventos.editar(editandoId, form) : repo.eventos.crear(sedeId, form)));
+    setGuardando(false);
+    if (fallo) return setErrorForm(fallo);
     setForm(null);
+    recargar();
   };
 
-  const alternarCancelado = (e: Evento) => {
-    actualizar((db) => ({ ...db, eventos: db.eventos.map((x) => (x.id === e.id ? { ...x, cancelado: !x.cancelado } : x)) }));
-    setSeleccionado({ ...e, cancelado: !e.cancelado });
+  // Los eventos no se borran: se cancelan y pueden reactivarse
+  const alternarCancelado = async (e: Evento) => {
+    const fallo = await intentar(() => repo.eventos.cambiarCancelado(e.id, !e.cancelado));
+    setErrorAccion(fallo);
+    if (!fallo) setSeleccionado({ ...e, cancelado: !e.cancelado });
+    recargar();
   };
 
   const nombreMiembro = (id: string) => miembros.find((m) => m.id === id)?.nombre ?? "—";
@@ -94,6 +118,7 @@ export default function Eventos() {
         descripcion="Cultos, reuniones y actividades de la sede"
         acciones={puedeEditar() && <Boton onClick={() => abrirNuevo()}><Plus size={16} /> Nuevo evento</Boton>}
       />
+      {(error || errorAccion) && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorAccion}</p>}
       <Tarjeta>
         <div className="flex items-center justify-between border-b border-slate-200 p-4">
           <h2 className="text-lg font-semibold capitalize">{MESES[m - 1]} {a}</h2>
@@ -161,7 +186,9 @@ export default function Eventos() {
             <p ><strong>Fecha:</strong> {fechaLarga(seleccionado.fecha)}, {seleccionado.hora}</p>
             <p><strong>Lugar:</strong> {seleccionado.lugar}</p>
             {seleccionado.ministerioId && <p><strong>Ministerio:</strong> {ministerios.find((x) => x.id === seleccionado.ministerioId)?.nombre}</p>}
-            <p><strong>Responsables:</strong> {seleccionado.responsables.map(nombreMiembro).join(", ") || "Sin asignar"}</p>
+            {usuario!.rol !== "miembro" && (
+              <p><strong>Responsables:</strong> {seleccionado.responsables.map(nombreMiembro).join(", ") || "Sin asignar"}</p>
+            )}
             <p className="text-slate-600">{seleccionado.descripcion}</p>
           </div>
         )}
@@ -171,7 +198,7 @@ export default function Eventos() {
         titulo={editandoId ? "Editar evento" : "Nuevo evento"}
         abierto={!!form}
         alCerrar={() => setForm(null)}
-        pie={<><Boton variante="secundario" onClick={() => setForm(null)}>Cancelar</Boton><Boton onClick={guardar}>Guardar</Boton></>}
+        pie={<><Boton variante="secundario" onClick={() => setForm(null)}>Cancelar</Boton><Boton disabled={guardando} onClick={guardar}>Guardar</Boton></>}
       >
         {form && (
           <>
@@ -203,6 +230,7 @@ export default function Eventos() {
               </Selector>
             </Campo>
             <Campo etiqueta="Descripción"><AreaTexto value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} /></Campo>
+            {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
           </>
         )}
       </Modal>
