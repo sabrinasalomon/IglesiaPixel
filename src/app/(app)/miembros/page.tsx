@@ -2,7 +2,7 @@
 
 import { Pencil, Plus, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
+import { Avatar, Boton, Campo, Contador, Encabezado, Entrada, Etiqueta, Modal, Pestanas, SinAcceso, Sprite, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
 import { fechaCorta } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
 import type { DatosMiembro } from "@/lib/repositorio/tipos";
@@ -39,6 +39,9 @@ export default function Miembros() {
 
   if (!permiso || permiso === "perfil") return <SinAcceso />;
 
+  const activos = miembros.filter((m) => m.activo).length;
+  const nuevos = miembros.filter((m) => m.fechaIngreso.slice(0, 4) === hoy.slice(0, 4)).length;
+
   const abrir = (m: Miembro | "nuevo") => {
     setEditando(m);
     setErrorForm("");
@@ -68,20 +71,38 @@ export default function Miembros() {
     <>
       <Encabezado
         titulo="Miembros"
-        descripcion={`${miembros.filter((m) => m.activo).length} activos en ${sede?.nombre ?? ""}`}
-        acciones={puedeEditar && <Boton onClick={() => abrir("nuevo")}><Plus size={16} /> Nuevo miembro</Boton>}
-      />
+        descripcion={`La congregación de ${sede?.nombre ?? "tu sede"}`}
+        acciones={puedeEditar && <Boton variante="dorado" onClick={() => abrir("nuevo")}><Plus size={16} /> Nuevo miembro</Boton>}
+        dibujo={<Congregacion />}
+      >
+        <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+          {[
+            ["Activos", activos],
+            ["Nuevos este año", nuevos],
+            ["Inactivos", miembros.length - activos],
+          ].map(([texto, valor]) => (
+            <div key={texto}>
+              <dt className="text-xs font-bold uppercase tracking-wider text-dorado-300">{texto}</dt>
+              <dd className="font-titulo text-3xl font-semibold"><Contador valor={valor as number} /></dd>
+            </div>
+          ))}
+        </dl>
+      </Encabezado>
       <Tarjeta>
-        <div className="flex flex-wrap gap-3 border-b border-piedra-200 p-4">
+        <div className="flex flex-wrap items-center gap-3 border-b-2 border-piedra-200 p-4">
           <div className="relative min-w-60 flex-1">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-piedra-400" />
             <Entrada className="pl-9" placeholder="Buscar por nombre" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
           </div>
-          <Selector className="max-w-40" value={filtro} onChange={(e) => setFiltro(e.target.value as Filtro)}>
-            <option value="activos">Activos</option>
-            <option value="inactivos">Inactivos</option>
-            <option value="todos">Todos</option>
-          </Selector>
+          <Pestanas
+            valor={filtro}
+            alCambiar={setFiltro}
+            opciones={[
+              { valor: "activos", texto: "Activos", cuenta: activos },
+              { valor: "inactivos", texto: "Inactivos", cuenta: miembros.length - activos },
+              { valor: "todos", texto: "Todos", cuenta: miembros.length },
+            ]}
+          />
         </div>
         {errorAccion && <p className="m-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{errorAccion}</p>}
         {error && <p className="m-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
@@ -96,10 +117,12 @@ export default function Miembros() {
               {puedeEditar && <th className={th}></th>}
             </tr>
           </thead>
-          <tbody>
+          <tbody key={filtro} className="escalonado">
             {lista.map((m) => (
               <tr key={m.id} className="hover:bg-piedra-50">
-                <td className={`${td} font-medium text-piedra-900`}>{m.nombre}</td>
+                <td className={`${td} font-bold text-piedra-900`}>
+                  <span className="flex items-center gap-3"><Avatar nombre={m.nombre} />{m.nombre}</span>
+                </td>
                 <td className={`${td} whitespace-nowrap`}>{m.telefono}</td>
                 <td className={td}>{m.correo}</td>
                 <td className={td}>{fechaCorta(m.fechaIngreso)}</td>
@@ -107,7 +130,7 @@ export default function Miembros() {
                 {puedeEditar && (
                   <td className={`${td} whitespace-nowrap text-right`}>
                     <Boton variante="fantasma" onClick={() => abrir(m)} aria-label="Editar"><Pencil size={15} /></Boton>
-                    <Boton variante={m.activo ? "peligro" : "secundario"} className="ml-1 py-1" onClick={() => alternarEstado(m)}>
+                    <Boton variante={m.activo ? "peligro" : "secundario"} className="ml-1 px-2.5 py-1 text-xs" onClick={() => alternarEstado(m)}>
                       {m.activo ? "Desactivar" : "Reactivar"}
                     </Boton>
                   </td>
@@ -116,7 +139,7 @@ export default function Miembros() {
             ))}
           </tbody>
         </Tabla>
-        {cargando ? <Vacio>Cargando…</Vacio> : lista.length === 0 && <Vacio>No hay miembros que coincidan con la búsqueda.</Vacio>}
+        {cargando ? <Vacio>Cargando…</Vacio> : lista.length === 0 && <Vacio dibujo={<Sprite nombre="persona" ancho={28} />}>No hay miembros que coincidan con la búsqueda.</Vacio>}
       </Tarjeta>
 
       <Modal
@@ -134,5 +157,16 @@ export default function Miembros() {
         {errorForm && <p className="text-sm text-liston-600">{errorForm}</p>}
       </Modal>
     </>
+  );
+}
+
+// Tres humanitos de pie sobre el pasto, de distinta estatura
+function Congregacion() {
+  return (
+    <div className="flex items-end gap-2 px-2">
+      <Sprite nombre="persona" ancho={36} />
+      <Sprite nombre="persona" ancho={46} />
+      <Sprite nombre="persona" ancho={32} />
+    </div>
   );
 }

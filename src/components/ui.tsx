@@ -12,12 +12,14 @@ export function Tarjeta({ className, ...p }: ComponentProps<"div">) {
   return <div className={unir("pixel-suave bg-piedra-50", className)} {...p} />;
 }
 
-type Variante = "primario" | "secundario" | "peligro" | "fantasma";
+type Variante = "primario" | "secundario" | "peligro" | "fantasma" | "dorado";
 const VARIANTES: Record<Variante, string> = {
   primario: "border-2 border-piedra-900 bg-marca-700 text-white shadow-[3px_3px_0_0_var(--color-piedra-900)] hover:bg-marca-600",
   secundario: "border-2 border-piedra-900 bg-piedra-50 text-piedra-900 shadow-[3px_3px_0_0_var(--color-piedra-900)] hover:bg-dorado-100",
   peligro: "border-2 border-liston-700 bg-piedra-50 text-liston-700 shadow-[3px_3px_0_0_var(--color-liston-700)] hover:bg-liston-50",
   fantasma: "text-piedra-600 hover:bg-piedra-200/60 hover:text-piedra-900",
+  // Para fondos oscuros, como el cielo de los encabezados
+  dorado: "border-2 border-piedra-950 bg-dorado-400 text-piedra-950 shadow-[3px_3px_0_0_var(--color-piedra-950)] hover:bg-dorado-300",
 };
 
 export function Boton({
@@ -92,15 +94,42 @@ export function Liston({ className }: { className?: string }) {
   return <span aria-hidden className={unir("liston pointer-events-none absolute top-0 w-2.5 bg-liston-600", className ?? "left-5 h-6")} />;
 }
 
+// Estrellas del cielo de los encabezados: posición en % y retraso del parpadeo
+const ESTRELLAS: [number, number, number][] = [[4, 18, 0], [16, 72, 0.6], [29, 26, 1.3], [44, 82, 0.3], [58, 14, 1.8], [67, 64, 0.9], [81, 30, 2.2]];
+
 export function Encabezado({
   titulo,
   descripcion,
   acciones,
+  dibujo,
+  children,
 }: {
   titulo: string;
   descripcion?: string;
   acciones?: ReactNode;
+  /** Con dibujo, el encabezado es un cielo nocturno con el dibujo a la derecha */
+  dibujo?: ReactNode;
+  /** Contenido extra bajo la descripción, como contadores */
+  children?: ReactNode;
 }) {
+  if (dibujo) {
+    return (
+      <section className="pixel relative mb-6 flex items-end justify-between gap-6 overflow-hidden bg-marca-900 px-6 pt-6 text-white sm:px-8">
+        {ESTRELLAS.map(([x, y, retraso], i) => (
+          <span key={i} aria-hidden className="absolute h-1 w-1 animate-titilar bg-dorado-200" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${retraso}s` }} />
+        ))}
+        <div className="relative pb-8">
+          <h1 className="font-titulo text-4xl font-semibold leading-tight">{titulo}</h1>
+          {descripcion && <p className="mt-1 text-marca-100">{descripcion}</p>}
+          {children}
+          {acciones && <div className="mt-5 flex flex-wrap gap-2">{acciones}</div>}
+        </div>
+        <div className="relative z-10 hidden shrink-0 self-end pb-2 sm:block">{dibujo}</div>
+        {/* Franja de pasto donde se para el dibujo */}
+        <div aria-hidden className="absolute inset-x-0 bottom-0 h-3 border-t-2 border-olivo-300 bg-olivo-600" />
+      </section>
+    );
+  }
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
@@ -168,10 +197,10 @@ export function Tabla({ children }: { children: ReactNode }) {
 export const th = "border-b-2 border-piedra-800 bg-piedra-100 px-4 py-2.5 font-titulo text-[13px] font-medium text-piedra-700";
 export const td = "border-b border-piedra-200 px-4 py-3 text-piedra-700";
 
-export function Vacio({ children }: { children: ReactNode }) {
+export function Vacio({ children, dibujo }: { children: ReactNode; dibujo?: ReactNode }) {
   return (
     <div className="flex flex-col items-center px-4 py-12 text-center">
-      <Inbox size={22} className="mb-2 text-piedra-300" />
+      {dibujo ? <div className="mb-3 opacity-80">{dibujo}</div> : <Inbox size={22} className="mb-2 text-piedra-300" />}
       <p className="text-sm text-piedra-500">{children}</p>
     </div>
   );
@@ -240,4 +269,44 @@ export function Contador({ valor, formato = (n: number) => n.toLocaleString("es-
 export function Sprite({ nombre, ancho, className }: { nombre: "iglesia" | "cruz" | "biblia" | "persona"; ancho: number; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element -- imagen fija y pequeña, sin optimizar a propósito
   return <img src={`/pixel/${nombre}.png`} alt="" aria-hidden width={ancho} className={unir("sprite h-auto", className)} style={{ width: ancho }} />;
+}
+
+// Cuadrito con las iniciales; el color sale del nombre para que cada persona
+// conserve siempre el suyo.
+const COLORES_AVATAR = ["bg-marca-700", "bg-liston-600", "bg-olivo-500", "bg-dorado-500", "bg-marca-500", "bg-piedra-700"];
+
+export function Avatar({ nombre }: { nombre: string }) {
+  const iniciales = nombre.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+  const color = COLORES_AVATAR[[...nombre].reduce((suma, letra) => suma + letra.charCodeAt(0), 0) % COLORES_AVATAR.length];
+  return (
+    <span aria-hidden className={`inline-flex h-8 w-8 shrink-0 items-center justify-center border-2 border-piedra-900 font-titulo text-xs font-semibold text-white ${color}`}>
+      {iniciales}
+    </span>
+  );
+}
+
+// Pestañas tipo botón de juego: la elegida se hunde y se pinta de dorado
+export function Pestanas<T extends string>({ opciones, valor, alCambiar }: { opciones: { valor: T; texto: string; cuenta?: number }[]; valor: T; alCambiar: (v: T) => void }) {
+  return (
+    <div role="tablist" className="flex flex-wrap gap-2">
+      {opciones.map((o) => {
+        const activa = o.valor === valor;
+        return (
+          <button
+            key={o.valor}
+            role="tab"
+            aria-selected={activa}
+            onClick={() => alCambiar(o.valor)}
+            className={unir(
+              "inline-flex items-center gap-2 border-2 border-piedra-900 px-3 py-1.5 text-sm font-bold transition-[background-color,transform,box-shadow] duration-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dorado-400",
+              activa ? "translate-x-[2px] translate-y-[2px] bg-dorado-300 text-piedra-950" : "bg-piedra-50 text-piedra-700 shadow-[2px_2px_0_0_var(--color-piedra-900)] hover:bg-dorado-100"
+            )}
+          >
+            {o.texto}
+            {o.cuenta !== undefined && <span className={unir("px-1.5 font-titulo text-xs", activa ? "bg-piedra-950 text-dorado-300" : "bg-piedra-200 text-piedra-700")}>{o.cuenta}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
