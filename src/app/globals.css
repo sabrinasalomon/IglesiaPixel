@@ -69,6 +69,8 @@
   --animate-titilar: titilar 2.8s steps(2, jump-none) infinite;
   --animate-cursor: cursor 0.9s steps(1) infinite;
   --animate-subir: subir 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-caminar: caminar 2.6s linear forwards;
+  --animate-paso: paso 0.32s steps(1) infinite;
 
   @keyframes aparecer {
     from { opacity: 0; }
@@ -100,6 +102,17 @@
   @keyframes cursor {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
+  }
+  /* El humanito camina hasta la puerta de la iglesia y entra */
+  @keyframes caminar {
+    0% { left: 6%; opacity: 1; transform: translateX(-50%) scale(1); }
+    78% { left: 50%; opacity: 1; transform: translateX(-50%) scale(1); }
+    100% { left: 50%; opacity: 0; transform: translateX(-50%) translateY(-4px) scale(0.55); }
+  }
+  /* Rebote de cada paso, a saltos como un sprite */
+  @keyframes paso {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-4px) rotate(3deg); }
   }
   /* Entrada de cada bloque de la página, uno tras otro */
   @keyframes subir {

@@ -17,12 +17,17 @@ export function PantallaAcceso({
   logoUrl,
   titulo,
   subtitulo,
+  entrando = false,
+  alEntrar,
   children,
 }: {
   nombre: string;
   logoUrl?: string | null;
   titulo: string;
   subtitulo?: string;
+  /** Al iniciar sesión, el humanito camina hasta la iglesia; alEntrar avisa cuando ya entró */
+  entrando?: boolean;
+  alEntrar?: () => void;
   children: ReactNode;
 }) {
   return (
@@ -51,6 +56,13 @@ export function PantallaAcceso({
 
         <div className="relative mt-auto flex justify-center">
           <Sprite nombre="iglesia" ancho={300} className="relative z-10 -mb-3 animate-flotar xl:w-[340px]!" />
+          {/* El humanito espera flotando junto al camino; al entrar, camina hasta la puerta */}
+          <div
+            className={`absolute bottom-0 z-20 -mb-2 ${entrando ? "animate-caminar" : "left-[6%] -translate-x-1/2"}`}
+            onAnimationEnd={(e) => { if (e.animationName === "caminar") alEntrar?.(); }}
+          >
+            <Sprite nombre="persona" ancho={24} className={entrando ? "animate-paso" : "animate-flotar [animation-delay:1.2s]"} />
+          </div>
         </div>
         {/* Pasto en escalones, como el suelo de un nivel */}
         <div aria-hidden className="relative -mx-12 h-14 border-t-4 border-olivo-300 bg-olivo-600 xl:-mx-16">
