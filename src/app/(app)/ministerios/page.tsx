@@ -78,10 +78,10 @@ export default function Ministerios() {
             <Tarjeta key={m.id} className="flex flex-col p-5">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <span className="rounded-lg bg-indigo-50 p-2 text-indigo-600"><UsersRound size={18} /></span>
+                  <span className="rounded-xl bg-marca-50 p-2 text-marca-600 ring-1 ring-inset ring-marca-600/15"><UsersRound size={18} /></span>
                   <h2 className="font-semibold">{m.nombre}</h2>
                 </div>
-                {mio && <Etiqueta tono="indigo">Tu ministerio</Etiqueta>}
+                {mio && <Etiqueta tono="marca">Tu ministerio</Etiqueta>}
               </div>
               <p className="mt-3 text-sm text-slate-600">{m.descripcion}</p>
               <dl className="mt-4 space-y-1 text-sm">
@@ -134,7 +134,7 @@ export default function Ministerios() {
               {abierto.integrantes.map((id) => (
                 <li key={id} className="flex items-center justify-between px-3 py-2 text-sm">
                   <span>
-                    {nombre(id)} {id === abierto.coordinadorId && <Etiqueta tono="indigo">Coordinador</Etiqueta>}
+                    {nombre(id)} {id === abierto.coordinadorId && <Etiqueta tono="marca">Coordinador</Etiqueta>}
                   </span>
                   {puedeEditar(abierto) && id !== abierto.coordinadorId && (
                     <button

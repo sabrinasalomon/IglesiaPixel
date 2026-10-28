@@ -43,12 +43,12 @@ export default function Sedes() {
       {db.sedes.length === 0 && (
         <Tarjeta className="p-8 text-center text-sm text-slate-600">Aún no hay sedes. Registra la primera para empezar.</Tarjeta>
       )}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {db.sedes.map((s) => (
-          <Tarjeta key={s.id} className={`p-5 ${s.id === sedeId ? "ring-2 ring-indigo-200" : ""}`}>
+          <Tarjeta key={s.id} className={`p-5 ${s.id === sedeId ? "ring-2 ring-marca-200" : ""}`}>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <span className="rounded-lg bg-indigo-50 p-2 text-indigo-600"><Building2 size={18} /></span>
+                <span className="rounded-xl bg-marca-50 p-2 text-marca-600 ring-1 ring-inset ring-marca-600/15"><Building2 size={18} /></span>
                 <h2 className="font-semibold">{s.nombre}</h2>
               </div>
               {s.activa ? <Etiqueta tono="verde">Activa</Etiqueta> : <Etiqueta>Inactiva</Etiqueta>}

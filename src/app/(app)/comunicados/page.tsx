@@ -77,7 +77,7 @@ export default function Comunicados() {
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-semibold">{a.titulo}</h2>
                   {a.importante && <Etiqueta tono="ambar">Importante</Etiqueta>}
-                  {a.sedeId === null && <Etiqueta tono="indigo">Todas las sedes</Etiqueta>}
+                  {a.sedeId === null && <Etiqueta tono="marca">Todas las sedes</Etiqueta>}
                   {a.fechaPublicacion > hoy && <Etiqueta>Programado</Etiqueta>}
                 </div>
                 <p className="mt-1 text-xs text-slate-500">{fechaLarga(a.fechaPublicacion)}{a.autorNombre && ` · ${a.autorNombre}`}</p>

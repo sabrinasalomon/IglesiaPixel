@@ -161,7 +161,7 @@ export default function Reportes() {
             <button
               key={p}
               onClick={() => setTipo(p)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium ${tipo === p ? "bg-indigo-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"}`}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium ${tipo === p ? "bg-marca-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"}`}
             >
               {NOMBRES[p]}
             </button>

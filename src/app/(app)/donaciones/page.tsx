@@ -119,7 +119,7 @@ export default function Donaciones() {
         </div>
       </Tarjeta>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Tarjeta className="lg:col-span-2">
           <h2 className="border-b border-slate-200 p-4 font-semibold">Movimientos del periodo</h2>
           <div className="max-h-[520px] overflow-y-auto">
@@ -133,7 +133,7 @@ export default function Donaciones() {
               <tbody>
                 {movimientos.map((a) => (
                   <tr key={a.id} className={a.anulada ? "text-slate-400" : ""}>
-                    <td className={td}>{fechaCorta(a.fecha)}</td>
+                    <td className={`${td} whitespace-nowrap`}>{fechaCorta(a.fecha)}</td>
                     <td className={td}>{a.concepto} {a.anulada && <Etiqueta tono="rojo">Anulada</Etiqueta>}</td>
                     <td className={td}>{nombre(a.miembroId) ?? <Etiqueta>Anónimo</Etiqueta>}</td>
                     <td className={td}>{a.metodo}</td>
@@ -161,7 +161,7 @@ export default function Donaciones() {
                 <li key={c}>
                   <div className="flex justify-between"><span>{c}</span><span className="font-medium">{mxn(monto)}</span></div>
                   <div className="mt-1 h-1.5 rounded-full bg-slate-100">
-                    <div className="h-1.5 rounded-full bg-indigo-500" style={{ width: `${(monto / total) * 100}%` }} />
+                    <div className="h-1.5 rounded-full bg-marca-500" style={{ width: `${(monto / total) * 100}%` }} />
                   </div>
                 </li>
               ))}

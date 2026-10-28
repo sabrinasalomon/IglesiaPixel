@@ -3,8 +3,8 @@
 import { CalendarDays, ClipboardCheck, HandCoins, Users, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo } from "react";
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Encabezado, Etiqueta, Indicador, Tarjeta } from "@/components/ui";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Encabezado, Etiqueta, FichaFecha, Indicador, Tarjeta } from "@/components/ui";
 import { fechaCorta, fechaLarga, mesCorto, mxn } from "@/lib/formato";
 import { puedeVer, veFinanzas } from "@/lib/permisos";
 import { useDatos } from "@/lib/store";
@@ -21,6 +21,15 @@ interface DatosPanel {
 }
 
 const VACIO: DatosPanel = { miembros: [], eventos: [], ministerios: [], asistencias: [], aportaciones: [], anuncios: [] };
+
+// Estilo común de las gráficas, alineado con la paleta de marca
+const MARCA = "#3049d4";
+const EJE = { fontSize: 12, fill: "#64748b" };
+const CUADRICULA = "#eef0f5";
+const GLOBO = {
+  contentStyle: { borderRadius: 12, border: "1px solid #e2e8f0", boxShadow: "0 8px 24px -8px rgba(15,23,42,.18)", fontSize: 12 },
+  cursor: { stroke: "#c0cffb", fill: "#eef3ff" },
+};
 
 // Panel principal: indicadores de la sede activa. Cada rol solo carga lo que
 // puede ver; las cifras financieras son para administrador, pastor y tesorero.
@@ -99,31 +108,46 @@ export default function Panel() {
       <Encabezado titulo={`Hola, ${usuario!.nombre.split(" ")[0]}`} descripcion={`Resumen de ${sede?.nombre ?? ""} · ${fechaLarga(hoy)}`} />
 
       <div className={`grid gap-4 sm:grid-cols-2 ${finanzas && veAsistencia ? "xl:grid-cols-5" : "xl:grid-cols-4"}`}>
-        <Indicador titulo="Miembros activos" valor={datos.activos} detalle={`de ${miembros.length} registrados`} icono={<Users size={18} />} />
-        <Indicador titulo="Eventos próximos" valor={datos.proximos.length} detalle="programados desde hoy" icono={<CalendarDays size={18} />} />
+        <Indicador titulo="Miembros activos" valor={datos.activos} detalle={`de ${miembros.length} registrados`} icono={<Users size={18} />} tono="marca" />
+        <Indicador titulo="Eventos próximos" valor={datos.proximos.length} detalle="programados desde hoy" icono={<CalendarDays size={18} />} tono="cielo" />
         {veAsistencia && (
-          <Indicador titulo="Asistencias del mes" valor={datos.asistenciasMes} detalle="presencias registradas" icono={<ClipboardCheck size={18} />} />
+          <Indicador titulo="Asistencias del mes" valor={datos.asistenciasMes} detalle="presencias registradas" icono={<ClipboardCheck size={18} />} tono="verde" />
         )}
-        <Indicador titulo="Ministerios" valor={ministerios.length} detalle="grupos de trabajo" icono={<UsersRound size={18} />} />
+        <Indicador titulo="Ministerios" valor={ministerios.length} detalle="grupos de trabajo" icono={<UsersRound size={18} />} tono="violeta" />
         {finanzas && (
-          <Indicador titulo="Ingresos del mes" valor={mxn(datos.ingresoMes)} detalle="solo visible para roles autorizados" icono={<HandCoins size={18} />} />
+          <Indicador titulo="Ingresos del mes" valor={mxn(datos.ingresoMes)} detalle="solo visible para roles autorizados" icono={<HandCoins size={18} />} tono="dorado" />
         )}
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         {veAsistencia ? (
           <Tarjeta className="p-5">
             <h2 className="font-semibold">Asistencia a cultos dominicales</h2>
             <p className="mb-4 text-xs text-slate-500">Personas presentes en los últimos 8 domingos</p>
             <div className="h-60">
               <ResponsiveContainer>
-                <LineChart data={datos.cultos} margin={{ left: -20, right: 8 }}>
-                  <CartesianGrid stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="fecha" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="asistentes" name="Asistentes" stroke="#4f46e5" strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
+                <AreaChart data={datos.cultos} margin={{ left: -20, right: 8, top: 4 }}>
+                  <defs>
+                    <linearGradient id="relleno-asistencia" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={MARCA} stopOpacity={0.25} />
+                      <stop offset="100%" stopColor={MARCA} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid stroke={CUADRICULA} vertical={false} />
+                  <XAxis dataKey="fecha" tick={EJE} axisLine={false} tickLine={false} />
+                  <YAxis tick={EJE} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip {...GLOBO} />
+                  <Area
+                    type="monotone"
+                    dataKey="asistentes"
+                    name="Asistentes"
+                    stroke={MARCA}
+                    strokeWidth={2.5}
+                    fill="url(#relleno-asistencia)"
+                    dot={{ r: 3.5, fill: "#fff", strokeWidth: 2 }}
+                    activeDot={{ r: 5 }}
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           </Tarjeta>
@@ -140,12 +164,12 @@ export default function Panel() {
             <p className="mb-4 text-xs text-slate-500">Aportaciones registradas en pesos (MXN)</p>
             <div className="h-60">
               <ResponsiveContainer>
-                <BarChart data={datos.ingresos} margin={{ left: 0, right: 8 }}>
-                  <CartesianGrid stroke="#e2e8f0" vertical={false} />
-                  <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${Math.round(v / 1000)}k`} />
-                  <Tooltip formatter={(v) => mxn(Number(v))} />
-                  <Bar dataKey="total" name="Ingresos" fill="#4f46e5" radius={[4, 4, 0, 0]} />
+                <BarChart data={datos.ingresos} margin={{ left: 0, right: 8, top: 4 }}>
+                  <CartesianGrid stroke={CUADRICULA} vertical={false} />
+                  <XAxis dataKey="mes" tick={EJE} axisLine={false} tickLine={false} />
+                  <YAxis tick={EJE} axisLine={false} tickLine={false} tickFormatter={(v) => `$${Math.round(v / 1000)}k`} />
+                  <Tooltip {...GLOBO} formatter={(v) => mxn(Number(v))} />
+                  <Bar dataKey="total" name="Ingresos" fill={MARCA} radius={[6, 6, 0, 0]} maxBarSize={44} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -158,20 +182,22 @@ export default function Panel() {
         )}
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Tarjeta className="p-5">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="font-semibold">Próximos eventos</h2>
-            <Link href="/eventos" className="text-sm text-indigo-600 hover:underline">Ver calendario</Link>
+            <Link href="/eventos" className="text-sm font-semibold text-marca-600 hover:underline">Ver calendario</Link>
           </div>
           <ul className="divide-y divide-slate-100">
+            {datos.proximos.length === 0 && <li className="py-2.5 text-sm text-slate-500">No hay eventos programados.</li>}
             {datos.proximos.slice(0, 5).map((e) => (
-              <li key={e.id} className="flex items-center justify-between py-2.5">
-                <div>
-                  <p className="text-sm font-medium">{e.titulo}</p>
-                  <p className="text-xs text-slate-500">{fechaLarga(e.fecha)} · {e.hora} · {e.lugar}</p>
+              <li key={e.id} className="flex items-center gap-3 py-3">
+                <FichaFecha iso={e.fecha} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-800">{e.titulo}</p>
+                  <p className="truncate text-xs text-slate-500">{fechaLarga(e.fecha)} · {e.hora} · {e.lugar}</p>
                 </div>
-                <Etiqueta tono="indigo">{e.tipo}</Etiqueta>
+                <span className="hidden sm:inline"><Etiqueta tono="marca">{e.tipo}</Etiqueta></span>
               </li>
             ))}
           </ul>
@@ -192,9 +218,12 @@ function ListaAvisos({ avisos }: { avisos: Anuncio[] }) {
     <ul className="space-y-3">
       {avisos.length === 0 && <li className="text-sm text-slate-500">No hay avisos publicados.</li>}
       {avisos.map((a) => (
-        <li key={a.id} className="rounded-lg border border-slate-100 p-3">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-medium">{a.titulo}</p>
+        <li
+          key={a.id}
+          className={`rounded-xl border p-3.5 ${a.importante ? "border-dorado-200 bg-dorado-50/50" : "border-slate-100 bg-slate-50/50"}`}
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-slate-800">{a.titulo}</p>
             {a.importante && <Etiqueta tono="ambar">Importante</Etiqueta>}
           </div>
           <p className="mt-1 text-sm text-slate-600">{a.contenido}</p>

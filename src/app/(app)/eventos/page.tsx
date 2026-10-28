@@ -140,7 +140,7 @@ export default function Eventos() {
                 className={`min-h-24 border-b border-r border-slate-100 p-1.5 ${d.delMes ? "" : "bg-slate-50/60 text-slate-400"}`}
                 onDoubleClick={() => puedeEditar() && abrirNuevo(d.fecha)}
               >
-                <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${d.fecha === hoy ? "bg-indigo-600 font-semibold text-white" : ""}`}>
+                <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${d.fecha === hoy ? "bg-marca-600 font-semibold text-white" : ""}`}>
                   {d.dia}
                 </span>
                 <div className="mt-1 space-y-1">
@@ -149,7 +149,7 @@ export default function Eventos() {
                       key={e.id}
                       onClick={() => setSeleccionado(e)}
                       className={`block w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] ${
-                        e.cancelado ? "bg-slate-100 text-slate-400 line-through" : e.ministerioId ? "bg-emerald-50 text-emerald-800" : "bg-indigo-50 text-indigo-800"
+                        e.cancelado ? "bg-slate-100 text-slate-400 line-through" : e.ministerioId ? "bg-emerald-50 text-emerald-800" : "bg-marca-50 text-marca-800"
                       }`}
                     >
                       {e.hora} {e.titulo}
@@ -180,7 +180,7 @@ export default function Eventos() {
         {seleccionado && (
           <div className="space-y-2 text-sm">
             <div className="flex gap-2">
-              <Etiqueta tono="indigo">{seleccionado.tipo}</Etiqueta>
+              <Etiqueta tono="marca">{seleccionado.tipo}</Etiqueta>
               {seleccionado.cancelado && <Etiqueta tono="rojo">Cancelado</Etiqueta>}
             </div>
             <p ><strong>Fecha:</strong> {fechaLarga(seleccionado.fecha)}, {seleccionado.hora}</p>

@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Logo } from "@/components/logo";
-import { Boton, Campo, Entrada, Tarjeta } from "@/components/ui";
+import { PantallaAcceso } from "@/components/pantalla-acceso";
+import { Boton, Campo, Entrada } from "@/components/ui";
 import { useDatos } from "@/lib/store";
 import { supabaseNavegador } from "@/lib/supabase/cliente";
 
@@ -50,31 +50,28 @@ export default function Restablecer() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-50 to-slate-100 p-4">
-      <div className="w-full max-w-md space-y-4">
-        <div className="flex flex-col items-center text-center">
-          <div className="mb-3"><Logo url={db.configuracion.logoUrl} tamano={48} /></div>
-          <h1 className="text-xl font-semibold">Define tu contraseña</h1>
-        </div>
-        <Tarjeta className="p-6">
-          {modo === "demo" ? (
-            <p className="text-sm text-slate-600">Esta página se usa con Supabase configurado.</p>
-          ) : !listo ? (
-            <p className="text-sm text-slate-600">Validando el enlace… Si no avanza, el enlace pudo haber expirado: solicita uno nuevo desde la pantalla de inicio de sesión.</p>
-          ) : (
-            <form onSubmit={guardar} className="space-y-4">
-              <Campo etiqueta="Nueva contraseña">
-                <Entrada type="password" autoComplete="new-password" value={contrasena} onChange={(e) => setContrasena(e.target.value)} />
-              </Campo>
-              <Campo etiqueta="Confirmar contraseña">
-                <Entrada type="password" autoComplete="new-password" value={confirmacion} onChange={(e) => setConfirmacion(e.target.value)} />
-              </Campo>
-              {error && <p className="text-sm text-red-600">{error}</p>}
-              <Boton type="submit" className="w-full" disabled={guardando}>Guardar y entrar</Boton>
-            </form>
-          )}
-        </Tarjeta>
-      </div>
-    </div>
+    <PantallaAcceso
+      nombre={db.configuracion.nombre}
+      logoUrl={db.configuracion.logoUrl}
+      titulo="Define tu contraseña"
+      subtitulo="Usa al menos 8 caracteres."
+    >
+      {modo === "demo" ? (
+        <p className="text-sm text-slate-600">Esta página se usa con Supabase configurado.</p>
+      ) : !listo ? (
+        <p className="text-sm text-slate-600">Validando el enlace… Si no avanza, el enlace pudo haber expirado: solicita uno nuevo desde la pantalla de inicio de sesión.</p>
+      ) : (
+        <form onSubmit={guardar} className="space-y-4">
+          <Campo etiqueta="Nueva contraseña">
+            <Entrada type="password" autoComplete="new-password" value={contrasena} onChange={(e) => setContrasena(e.target.value)} />
+          </Campo>
+          <Campo etiqueta="Confirmar contraseña">
+            <Entrada type="password" autoComplete="new-password" value={confirmacion} onChange={(e) => setConfirmacion(e.target.value)} />
+          </Campo>
+          {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          <Boton type="submit" className="w-full py-2.5" disabled={guardando}>Guardar y entrar</Boton>
+        </form>
+      )}
+    </PantallaAcceso>
   );
 }

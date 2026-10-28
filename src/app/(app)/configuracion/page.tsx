@@ -82,7 +82,7 @@ export default function Configuracion() {
       {mensaje && (
         <p className={`mb-4 rounded-lg px-3 py-2 text-sm ${mensaje.ok ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}>{mensaje.texto}</p>
       )}
-      <fieldset disabled={soloLectura} className="grid gap-4 lg:grid-cols-2">
+      <fieldset disabled={soloLectura} className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Tarjeta className="space-y-4 p-5">
           <h2 className="font-semibold">Iglesia</h2>
           <div className="flex items-center gap-4">

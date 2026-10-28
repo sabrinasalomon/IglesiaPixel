@@ -74,7 +74,7 @@ export default function Usuarios() {
               <tr key={u.id}>
                 <td className={`${td} font-medium text-slate-900`}>{u.nombre}</td>
                 <td className={td}>{u.correo}</td>
-                <td className={td}><Etiqueta tono="indigo">{nombreRol(u.rol)}</Etiqueta></td>
+                <td className={td}><Etiqueta tono="marca">{nombreRol(u.rol)}</Etiqueta></td>
                 <td className={td}>{u.rol === "administrador" ? "Todas" : nombreSede(u.sedeId)}</td>
                 <td className={td}>{u.activo ? <Etiqueta tono="verde">Activo</Etiqueta> : <Etiqueta tono="ambar">Pendiente o bloqueado</Etiqueta>}</td>
                 {puedeEditar && (

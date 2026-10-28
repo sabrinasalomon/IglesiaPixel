@@ -1,7 +1,64 @@
 @import "tailwindcss";
 
+/* Identidad visual: azul real como color de marca y dorado como acento. */
+@theme {
+  --color-marca-50: #eef3ff;
+  --color-marca-100: #dce5fd;
+  --color-marca-200: #c0cffb;
+  --color-marca-300: #96adf6;
+  --color-marca-400: #6683ef;
+  --color-marca-500: #4561e6;
+  --color-marca-600: #3049d4;
+  --color-marca-700: #2739b0;
+  --color-marca-800: #24338d;
+  --color-marca-900: #222f70;
+  --color-marca-950: #141b42;
+
+  --color-dorado-50: #fdf9ed;
+  --color-dorado-100: #f9efcc;
+  --color-dorado-200: #f2dd96;
+  --color-dorado-300: #ebc660;
+  --color-dorado-400: #e5b03b;
+  --color-dorado-500: #d99224;
+  --color-dorado-600: #bf701c;
+  --color-dorado-700: #9f511b;
+
+  --animate-aparecer: aparecer 160ms ease-out;
+  --animate-emerger: emerger 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --animate-deslizar: deslizar 220ms ease-out;
+
+  @keyframes aparecer {
+    from { opacity: 0; }
+  }
+  @keyframes emerger {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  }
+  @keyframes deslizar {
+    from { transform: translateX(-100%); }
+  }
+}
+
+/* Las fuentes las carga next/font en el layout raíz como variables CSS */
+@theme inline {
+  --font-sans: var(--fuente-texto), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-titulo: var(--fuente-titulo), Georgia, "Times New Roman", serif;
+}
+
 body {
-  background: #f8fafc;
+  background: #f6f7fb;
   color: #0f172a;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-marca-100);
+  color: var(--color-marca-900);
+}
+
+/* Sin animaciones para quien las desactiva en su sistema */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
 }
