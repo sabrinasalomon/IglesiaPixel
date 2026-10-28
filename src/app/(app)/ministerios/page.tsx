@@ -68,7 +68,7 @@ export default function Ministerios() {
         <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorAccion}</p>
       )}
       {!cargando && ministerios.length === 0 && (
-        <Tarjeta className="p-8 text-center text-sm text-slate-500">Esta sede todavía no tiene ministerios registrados.</Tarjeta>
+        <Tarjeta className="p-8 text-center text-sm text-piedra-500">Esta sede todavía no tiene ministerios registrados.</Tarjeta>
       )}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {ministerios.map((m) => {
@@ -78,17 +78,17 @@ export default function Ministerios() {
             <Tarjeta key={m.id} className="flex flex-col p-5">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <span className="rounded-xl bg-marca-50 p-2 text-marca-600 ring-1 ring-inset ring-marca-600/15"><UsersRound size={18} /></span>
+                  <span className="rounded-lg bg-marca-50 p-2 text-marca-700 ring-1 ring-inset ring-marca-600/15"><UsersRound size={18} /></span>
                   <h2 className="font-semibold">{m.nombre}</h2>
                 </div>
                 {mio && <Etiqueta tono="marca">Tu ministerio</Etiqueta>}
               </div>
-              <p className="mt-3 text-sm text-slate-600">{m.descripcion}</p>
+              <p className="mt-3 text-sm text-piedra-600">{m.descripcion}</p>
               <dl className="mt-4 space-y-1 text-sm">
-                <div className="flex justify-between"><dt className="text-slate-500">Coordinador</dt><dd className="font-medium">{nombre(m.coordinadorId)}</dd></div>
-                <div className="flex justify-between"><dt className="text-slate-500">Integrantes</dt><dd className="font-medium">{m.integrantes.length}</dd></div>
+                <div className="flex justify-between"><dt className="text-piedra-500">Coordinador</dt><dd className="font-medium">{nombre(m.coordinadorId)}</dd></div>
+                <div className="flex justify-between"><dt className="text-piedra-500">Integrantes</dt><dd className="font-medium">{m.integrantes.length}</dd></div>
                 <div className="flex justify-between">
-                  <dt className="text-slate-500">Próxima actividad</dt>
+                  <dt className="text-piedra-500">Próxima actividad</dt>
                   <dd className="font-medium">{proximos[0] ? fechaCorta(proximos[0].fecha) : "Ninguna"}</dd>
                 </div>
               </dl>
@@ -130,7 +130,7 @@ export default function Ministerios() {
                 </Boton>
               </div>
             )}
-            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200">
+            <ul className="divide-y divide-piedra-100 rounded-lg border border-piedra-200">
               {abierto.integrantes.map((id) => (
                 <li key={id} className="flex items-center justify-between px-3 py-2 text-sm">
                   <span>
@@ -138,7 +138,7 @@ export default function Ministerios() {
                   </span>
                   {puedeEditar(abierto) && id !== abierto.coordinadorId && (
                     <button
-                      className="text-slate-400 hover:text-red-600"
+                      className="text-piedra-400 hover:text-red-600"
                       aria-label="Quitar del ministerio"
                       disabled={guardando}
                       onClick={() => ejecutar(() => repo.ministerios.quitarIntegrante(abierto.id, id))}
@@ -152,7 +152,7 @@ export default function Ministerios() {
             {errorAccion && <p className="text-sm text-red-600">{errorAccion}</p>}
             <div>
               <h3 className="mb-2 text-sm font-semibold">Actividades programadas</h3>
-              <ul className="space-y-1 text-sm text-slate-600">
+              <ul className="space-y-1 text-sm text-piedra-600">
                 {eventos
                   .filter((e) => e.ministerioId === abierto.id && e.fecha >= hoy && !e.cancelado)
                   .map((e) => <li key={e.id}>{fechaCorta(e.fecha)} · {e.hora} · {e.titulo}</li>)}

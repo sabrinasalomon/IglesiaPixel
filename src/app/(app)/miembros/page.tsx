@@ -72,12 +72,12 @@ export default function Miembros() {
         acciones={puedeEditar && <Boton onClick={() => abrir("nuevo")}><Plus size={16} /> Nuevo miembro</Boton>}
       />
       <Tarjeta>
-        <div className="flex flex-wrap gap-3 border-b border-slate-200 p-4">
+        <div className="flex flex-wrap gap-3 border-b border-piedra-200 p-4">
           <div className="relative min-w-60 flex-1">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-piedra-400" />
             <Entrada className="pl-9" placeholder="Buscar por nombre" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
           </div>
-          <Selector className="w-40" value={filtro} onChange={(e) => setFiltro(e.target.value as Filtro)}>
+          <Selector className="max-w-40" value={filtro} onChange={(e) => setFiltro(e.target.value as Filtro)}>
             <option value="activos">Activos</option>
             <option value="inactivos">Inactivos</option>
             <option value="todos">Todos</option>
@@ -98,8 +98,8 @@ export default function Miembros() {
           </thead>
           <tbody>
             {lista.map((m) => (
-              <tr key={m.id} className="hover:bg-slate-50">
-                <td className={`${td} font-medium text-slate-900`}>{m.nombre}</td>
+              <tr key={m.id} className="hover:bg-piedra-50">
+                <td className={`${td} font-medium text-piedra-900`}>{m.nombre}</td>
                 <td className={`${td} whitespace-nowrap`}>{m.telefono}</td>
                 <td className={td}>{m.correo}</td>
                 <td className={td}>{fechaCorta(m.fechaIngreso)}</td>

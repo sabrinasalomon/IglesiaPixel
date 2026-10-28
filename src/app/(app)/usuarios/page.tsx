@@ -62,7 +62,7 @@ export default function Usuarios() {
           )
         }
       />
-      {aviso && <p className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{aviso}</p>}
+      {aviso && <p className="mb-4 rounded-lg bg-olivo-50 px-3 py-2 text-sm text-olivo-700">{aviso}</p>}
       {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <Tarjeta>
         <Tabla>
@@ -72,7 +72,7 @@ export default function Usuarios() {
           <tbody>
             {usuarios.map((u) => (
               <tr key={u.id}>
-                <td className={`${td} font-medium text-slate-900`}>{u.nombre}</td>
+                <td className={`${td} font-medium text-piedra-900`}>{u.nombre}</td>
                 <td className={td}>{u.correo}</td>
                 <td className={td}><Etiqueta tono="marca">{nombreRol(u.rol)}</Etiqueta></td>
                 <td className={td}>{u.rol === "administrador" ? "Todas" : nombreSede(u.sedeId)}</td>
@@ -103,7 +103,7 @@ export default function Usuarios() {
             <Campo etiqueta="Correo"><Entrada type="email" value={nuevo.correo} onChange={(e) => setNuevo({ ...nuevo, correo: e.target.value })} /></Campo>
             <SelectoresRolSede rol={nuevo.rol} sedeId={nuevo.sedeId} alCambiar={(rol, s) => setNuevo({ ...nuevo, rol, sedeId: s, miembroId: s === nuevo.sedeId ? nuevo.miembroId : undefined })} />
             <VinculoMiembro sedeId={nuevo.sedeId} miembroId={nuevo.miembroId} alCambiar={(miembroId) => setNuevo({ ...nuevo, miembroId })} />
-            <p className="text-xs text-slate-500">La persona recibirá un correo con un enlace para crear su contraseña.</p>
+            <p className="text-xs text-piedra-500">La persona recibirá un correo con un enlace para crear su contraseña.</p>
             {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
           </>
         )}

@@ -108,7 +108,7 @@ export default function Asistencia() {
       {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <Tarjeta className="lg:col-span-3">
-          <div className="grid gap-3 border-b border-slate-200 p-4 sm:grid-cols-2">
+          <div className="grid gap-3 border-b border-piedra-200 p-4 sm:grid-cols-2">
             <Campo etiqueta="Evento">
               <Selector value={evento?.id ?? ""} onChange={(e) => setEventoId(e.target.value)}>
                 {elegibles.map((e) => (
@@ -118,7 +118,7 @@ export default function Asistencia() {
             </Campo>
             <Campo etiqueta="Buscar">
               <div className="relative">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-piedra-400" />
                 <Entrada className="pl-9" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Nombre" />
               </div>
             </Campo>
@@ -134,22 +134,24 @@ export default function Asistencia() {
                   <Boton disabled={guardando} onClick={guardar}>Guardar asistencia</Boton>
                 </div>
               </div>
-              {guardado && <p className="mx-4 mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Asistencia guardada.</p>}
+              {guardado && <p className="mx-4 mb-3 rounded-lg bg-olivo-50 px-3 py-2 text-sm text-olivo-700">Asistencia guardada.</p>}
               {errorGuardar && <p className="mx-4 mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorGuardar}</p>}
-              <ul className="max-h-[480px] divide-y divide-slate-100 overflow-y-auto">
+              <ul className="max-h-[480px] divide-y divide-piedra-100 overflow-y-auto">
                 {visibles.map((m) => (
                   <li key={m.id} className="flex items-center justify-between px-4 py-2">
                     <span className="text-sm">{m.nombre}</span>
                     <div className="flex gap-1">
                       <button
                         onClick={() => setMarcas({ ...marcas, [m.id]: true })}
-                        className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium ${marcas[m.id] ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"}`}
+                        aria-pressed={!!marcas[m.id]}
+                        className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold ${marcas[m.id] ? "bg-marca-700 text-white" : "bg-piedra-100 text-piedra-600 hover:bg-piedra-200"}`}
                       >
                         <Check size={14} /> Presente
                       </button>
                       <button
                         onClick={() => setMarcas({ ...marcas, [m.id]: false })}
-                        className={`flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium ${!marcas[m.id] ? "bg-red-500 text-white" : "bg-slate-100 text-slate-600"}`}
+                        aria-pressed={!marcas[m.id]}
+                        className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold ${!marcas[m.id] ? "bg-piedra-600 text-white" : "bg-piedra-100 text-piedra-600 hover:bg-piedra-200"}`}
                       >
                         <X size={14} /> Ausente
                       </button>
@@ -161,22 +163,22 @@ export default function Asistencia() {
           ) : cargando ? (
             <Vacio>Cargando…</Vacio>
           ) : (
-            <p className="p-6 text-sm text-slate-500">No hay eventos disponibles para pasar lista.</p>
+            <p className="p-6 text-sm text-piedra-500">No hay eventos disponibles para pasar lista.</p>
           )}
         </Tarjeta>
 
         <Tarjeta className="lg:col-span-2">
-          <h2 className="border-b border-slate-200 p-4 font-semibold">Historial reciente</h2>
+          <h2 className="border-b border-piedra-200 p-4 font-semibold">Historial reciente</h2>
           <Tabla>
             <thead>
               <tr><th className={th}>Evento</th><th className={th}>Presentes</th></tr>
             </thead>
             <tbody>
               {historial.map(({ evento: e, presentes: p, total }) => (
-                <tr key={e.id} className="cursor-pointer hover:bg-slate-50" onClick={() => setEventoId(e.id)}>
+                <tr key={e.id} className="cursor-pointer hover:bg-piedra-50" onClick={() => setEventoId(e.id)}>
                   <td className={td}>
-                    <p className="font-medium text-slate-900">{e.titulo}</p>
-                    <p className="text-xs text-slate-500">{fechaCorta(e.fecha)}</p>
+                    <p className="font-medium text-piedra-900">{e.titulo}</p>
+                    <p className="text-xs text-piedra-500">{fechaCorta(e.fecha)}</p>
                   </td>
                   <td className={td}>
                     {total ? <Etiqueta tono={p / total >= 0.7 ? "verde" : "ambar"}>{p} de {total}</Etiqueta> : <Etiqueta>Sin registro</Etiqueta>}

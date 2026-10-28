@@ -28,7 +28,7 @@ export async function exportarExcel(r: Reporte, archivo = nombreArchivo(`${r.tit
     [{ value: r.titulo, fontWeight: "bold" as const, fontSize: 14, columnSpan: ancho }],
     [{ value: r.subtitulo, columnSpan: ancho }],
     [],
-    r.columnas.map((c) => ({ value: c, fontWeight: "bold" as const, backgroundColor: "#DCE5FD" })),
+    r.columnas.map((c) => ({ value: c, fontWeight: "bold" as const, backgroundColor: "#DAE8E0" })),
     ...r.filas.map((fila) =>
       fila.map((v, i) =>
         typeof v === "number"
@@ -56,7 +56,7 @@ export async function exportarPdf(r: Reporte, archivo = nombreArchivo(`${r.titul
     head: [r.columnas],
     body: r.filas.map((fila) => fila.map((v, i) => (typeof v === "number" && r.moneda?.includes(i) ? pesos.format(v) : String(v)))),
     styles: { fontSize: 9, cellPadding: 4 },
-    headStyles: { fillColor: [39, 57, 176] },
+    headStyles: { fillColor: [37, 77, 61] },
     columnStyles: Object.fromEntries((r.moneda ?? []).map((i) => [i, { halign: "right" as const }])),
     didDrawPage: () => {
       const pagina = doc.getNumberOfPages();

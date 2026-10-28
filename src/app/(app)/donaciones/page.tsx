@@ -113,15 +113,15 @@ export default function Donaciones() {
         <Campo etiqueta="Desde"><Entrada type="date" value={desde} onChange={(e) => setDesde(e.target.value)} /></Campo>
         <Campo etiqueta="Hasta"><Entrada type="date" value={hasta} onChange={(e) => setHasta(e.target.value)} /></Campo>
         <div className="ml-auto text-right">
-          <p className="text-xs text-slate-500">Total del periodo</p>
+          <p className="text-xs text-piedra-500">Total del periodo</p>
           <p className="text-2xl font-semibold">{mxn(total)}</p>
-          <p className="text-xs text-slate-500">{enPeriodo.length} aportaciones</p>
+          <p className="text-xs text-piedra-500">{enPeriodo.length} aportaciones</p>
         </div>
       </Tarjeta>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Tarjeta className="lg:col-span-2">
-          <h2 className="border-b border-slate-200 p-4 font-semibold">Movimientos del periodo</h2>
+          <h2 className="border-b border-piedra-200 p-4 font-semibold">Movimientos del periodo</h2>
           <div className="max-h-[520px] overflow-y-auto">
             <Tabla>
               <thead>
@@ -132,7 +132,7 @@ export default function Donaciones() {
               </thead>
               <tbody>
                 {movimientos.map((a) => (
-                  <tr key={a.id} className={a.anulada ? "text-slate-400" : ""}>
+                  <tr key={a.id} className={a.anulada ? "text-piedra-400" : ""}>
                     <td className={`${td} whitespace-nowrap`}>{fechaCorta(a.fecha)}</td>
                     <td className={td}>{a.concepto} {a.anulada && <Etiqueta tono="rojo">Anulada</Etiqueta>}</td>
                     <td className={td}>{nombre(a.miembroId) ?? <Etiqueta>Anónimo</Etiqueta>}</td>
@@ -140,7 +140,7 @@ export default function Donaciones() {
                     <td className={`${td} text-right font-medium ${a.anulada ? "line-through" : ""}`}>{mxn(a.monto)}</td>
                     {puedeRegistrar && (
                       <td className={`${td} text-right`}>
-                        <button className="text-xs text-slate-500 hover:text-red-600" onClick={() => alternarAnulada(a)}>
+                        <button className="text-xs text-piedra-500 hover:text-red-600" onClick={() => alternarAnulada(a)}>
                           {a.anulada ? "Restaurar" : "Anular"}
                         </button>
                       </td>
@@ -160,7 +160,7 @@ export default function Donaciones() {
               {porConcepto.map(([c, monto]) => (
                 <li key={c}>
                   <div className="flex justify-between"><span>{c}</span><span className="font-medium">{mxn(monto)}</span></div>
-                  <div className="mt-1 h-1.5 rounded-full bg-slate-100">
+                  <div className="mt-1 h-1.5 rounded-full bg-piedra-100">
                     <div className="h-1.5 rounded-full bg-marca-500" style={{ width: `${(monto / total) * 100}%` }} />
                   </div>
                 </li>
@@ -168,7 +168,7 @@ export default function Donaciones() {
             </ul>
           </Tarjeta>
           <Tarjeta>
-            <h2 className="border-b border-slate-200 p-4 font-semibold">Resumen mensual</h2>
+            <h2 className="border-b border-piedra-200 p-4 font-semibold">Resumen mensual</h2>
             <Tabla>
               <thead><tr><th className={th}>Mes</th><th className={`${th} text-right`}>Diezmos</th><th className={`${th} text-right`}>Total</th></tr></thead>
               <tbody>

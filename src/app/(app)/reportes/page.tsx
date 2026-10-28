@@ -161,7 +161,7 @@ export default function Reportes() {
             <button
               key={p}
               onClick={() => setTipo(p)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium ${tipo === p ? "bg-marca-600 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50"}`}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium ${tipo === p ? "bg-marca-600 text-white" : "bg-white text-piedra-600 ring-1 ring-piedra-200 hover:bg-piedra-50"}`}
             >
               {NOMBRES[p]}
             </button>
@@ -170,10 +170,10 @@ export default function Reportes() {
       </div>
 
       <Tarjeta>
-        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-slate-200 p-4">
+        <div className="flex flex-wrap items-end justify-between gap-3 border-b border-piedra-200 p-4">
           <div>
             <h2 className="font-semibold">{NOMBRES[tipo]}</h2>
-            <p className="text-xs text-slate-500">{completo.subtitulo}</p>
+            <p className="text-xs text-piedra-500">{completo.subtitulo}</p>
           </div>
           {usaPeriodo && (
             <div className="flex gap-2 print:hidden">
@@ -194,7 +194,7 @@ export default function Reportes() {
             ))}
           </tbody>
         </Tabla>
-        {cargando ? <Vacio>Cargando…</Vacio> : <p className="p-4 text-xs text-slate-500">{reporte.filas.length} registros</p>}
+        {cargando ? <Vacio>Cargando…</Vacio> : <p className="p-4 text-xs text-piedra-500">{reporte.filas.length} registros</p>}
       </Tarjeta>
     </>
   );

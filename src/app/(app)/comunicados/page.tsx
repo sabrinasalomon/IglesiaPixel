@@ -2,7 +2,7 @@
 
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { AreaTexto, Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tarjeta, Vacio } from "@/components/ui";
+import { AreaTexto, Boton, Campo, Encabezado, Entrada, Etiqueta, Liston, Modal, Selector, SinAcceso, Tarjeta, Vacio } from "@/components/ui";
 import { fechaLarga } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
 import type { DatosAnuncio } from "@/lib/repositorio/tipos";
@@ -71,16 +71,17 @@ export default function Comunicados() {
         {cargando && <Vacio>Cargando…</Vacio>}
         {!cargando && lista.length === 0 && <Tarjeta><Vacio>No hay anuncios publicados.</Vacio></Tarjeta>}
         {lista.map((a) => (
-          <Tarjeta key={a.id} className="p-5">
+          <Tarjeta key={a.id} className="relative p-5">
+            {a.importante && <Liston className="left-5 h-4" />}
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-semibold">{a.titulo}</h2>
-                  {a.importante && <Etiqueta tono="ambar">Importante</Etiqueta>}
+                  {a.importante && <Etiqueta tono="liston">Importante</Etiqueta>}
                   {a.sedeId === null && <Etiqueta tono="marca">Todas las sedes</Etiqueta>}
                   {a.fechaPublicacion > hoy && <Etiqueta>Programado</Etiqueta>}
                 </div>
-                <p className="mt-1 text-xs text-slate-500">{fechaLarga(a.fechaPublicacion)}{a.autorNombre && ` · ${a.autorNombre}`}</p>
+                <p className="mt-1 text-xs text-piedra-500">{fechaLarga(a.fechaPublicacion)}{a.autorNombre && ` · ${a.autorNombre}`}</p>
               </div>
               {administra(a) && (
                 <div className="flex gap-1">
@@ -93,7 +94,7 @@ export default function Comunicados() {
                 </div>
               )}
             </div>
-            <p className="mt-3 text-sm text-slate-700">{a.contenido}</p>
+            <p className="mt-3 text-sm text-piedra-700">{a.contenido}</p>
           </Tarjeta>
         ))}
       </div>

@@ -1,8 +1,8 @@
 "use client";
 
-import { Clock, MapPin } from "lucide-react";
 import { useCallback } from "react";
-import { Encabezado, Etiqueta, FichaFecha, Tarjeta } from "@/components/ui";
+import { Semana } from "@/components/semana";
+import { Encabezado, Etiqueta, Liston, Tarjeta } from "@/components/ui";
 import { fechaLarga } from "@/lib/formato";
 import { useDatos } from "@/lib/store";
 import type { Anuncio, Evento, Horario } from "@/lib/types";
@@ -30,55 +30,47 @@ export default function Inicio() {
   const avisos = anuncios
     .filter((a) => a.fechaPublicacion <= hoy)
     .sort((a, b) => Number(b.importante) - Number(a.importante) || b.fechaPublicacion.localeCompare(a.fechaPublicacion));
-  const proximos = eventos
-    .filter((e) => e.fecha >= hoy && !e.cancelado)
-    .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora))
-    .slice(0, 8);
 
   return (
     <>
-      <Encabezado titulo={`Bienvenido, ${usuario!.nombre.split(" ")[0]}`} descripcion={`${sede?.nombre ?? ""} · ${sede?.direccion ?? ""}`} />
+      <Encabezado titulo={`Bienvenido, ${usuario!.nombre.split(" ")[0]}`} descripcion={sede ? `${sede.nombre}, ${sede.direccion}` : undefined} />
       {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="space-y-3 lg:col-span-2">
-          <h2 className="font-semibold">Anuncios</h2>
-          {avisos.length === 0 && <p className="text-sm text-slate-500">No hay anuncios por ahora.</p>}
+
+      <Semana eventos={eventos} hoy={hoy} />
+
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <section className="space-y-3 lg:col-span-2">
+          <h2 className="font-titulo text-xl font-medium">Anuncios</h2>
+          {avisos.length === 0 && <p className="text-sm text-piedra-500">No hay anuncios por ahora.</p>}
           {avisos.map((a) => (
-            <Tarjeta key={a.id} className={`p-5 ${a.importante ? "border-dorado-200 bg-gradient-to-br from-dorado-50/70 to-white" : ""}`}>
-              <div className="flex flex-wrap items-center gap-2">
+            <Tarjeta key={a.id} className="relative p-5">
+              {a.importante && <Liston className="right-5 h-8" />}
+              <div className="flex flex-wrap items-center gap-2 pr-6">
                 <h3 className="font-semibold">{a.titulo}</h3>
-                {a.importante && <Etiqueta tono="ambar">Importante</Etiqueta>}
+                {a.importante && <Etiqueta tono="liston">Importante</Etiqueta>}
               </div>
-              <p className="mt-1 text-xs text-slate-500">{fechaLarga(a.fechaPublicacion)}</p>
-              <p className="mt-2 text-sm text-slate-700">{a.contenido}</p>
+              <p className="mt-0.5 text-xs text-piedra-500">{fechaLarga(a.fechaPublicacion)}</p>
+              <p className="mt-2 text-piedra-700">{a.contenido}</p>
             </Tarjeta>
           ))}
-        </div>
-        <div className="space-y-4">
-          <Tarjeta className="p-5">
-            <h2 className="mb-3 font-semibold">Próximos eventos</h2>
-            <ul className="space-y-3">
-              {proximos.length === 0 && <li className="text-sm text-slate-500">No hay eventos programados.</li>}
-              {proximos.map((e) => (
-                <li key={e.id} className="flex items-center gap-3 text-sm">
-                  <FichaFecha iso={e.fecha} />
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-800">{e.titulo}</p>
-                    <p className="flex items-center gap-1 text-xs text-slate-500"><Clock size={12} /> {e.hora} <MapPin size={12} className="ml-2" /> <span className="truncate">{e.lugar}</span></p>
-                  </div>
+        </section>
+        <section>
+          <h2 className="mb-3 font-titulo text-xl font-medium">Horarios de reunión</h2>
+          <Tarjeta>
+            <ul className="divide-y divide-piedra-100">
+              {horarios.length === 0 && <li className="p-4 text-sm text-piedra-500">La sede aún no registra horarios.</li>}
+              {horarios.map((h) => (
+                <li key={h.id} className="flex items-baseline justify-between gap-3 px-4 py-3">
+                  <span>
+                    <span className="block font-semibold text-piedra-800">{h.dia}</span>
+                    <span className="text-sm text-piedra-500">{h.tipo}</span>
+                  </span>
+                  <span className="font-titulo text-xl font-medium tabular-nums lining-nums text-piedra-900">{h.hora}</span>
                 </li>
               ))}
             </ul>
           </Tarjeta>
-          <Tarjeta className="p-5">
-            <h2 className="mb-3 font-semibold">Horarios de reunión</h2>
-            <ul className="divide-y divide-slate-100 text-sm">
-              {horarios.map((h) => (
-                <li key={h.id} className="flex justify-between py-2"><span>{h.dia} · {h.tipo}</span><span className="font-medium tabular-nums text-slate-500">{h.hora}</span></li>
-              ))}
-            </ul>
-          </Tarjeta>
-        </div>
+        </section>
       </div>
     </>
   );

@@ -1,31 +1,60 @@
 @import "tailwindcss";
 
-/* Identidad visual: azul real como color de marca y dorado como acento. */
+/* Identidad visual: el verde pino del tiempo ordinario como marca, el carmín
+   del listón de la Biblia como único acento (marca dónde estás, lo importante
+   y los domingos), olivo para lo que está bien y neutros de piedra verdosa. */
 @theme {
-  --color-marca-50: #eef3ff;
-  --color-marca-100: #dce5fd;
-  --color-marca-200: #c0cffb;
-  --color-marca-300: #96adf6;
-  --color-marca-400: #6683ef;
-  --color-marca-500: #4561e6;
-  --color-marca-600: #3049d4;
-  --color-marca-700: #2739b0;
-  --color-marca-800: #24338d;
-  --color-marca-900: #222f70;
-  --color-marca-950: #141b42;
+  --color-papel: #f3f5f2;
 
-  --color-dorado-50: #fdf9ed;
-  --color-dorado-100: #f9efcc;
-  --color-dorado-200: #f2dd96;
-  --color-dorado-300: #ebc660;
-  --color-dorado-400: #e5b03b;
-  --color-dorado-500: #d99224;
-  --color-dorado-600: #bf701c;
-  --color-dorado-700: #9f511b;
+  --color-marca-50: #eff5f2;
+  --color-marca-100: #dae8e0;
+  --color-marca-200: #b5d1c2;
+  --color-marca-300: #87b39d;
+  --color-marca-400: #5a9078;
+  --color-marca-500: #3d755d;
+  --color-marca-600: #2e5f4b;
+  --color-marca-700: #254d3d;
+  --color-marca-800: #1f3f33;
+  --color-marca-900: #1a342b;
+  --color-marca-950: #0f211b;
+
+  --color-liston-50: #fbf0f1;
+  --color-liston-100: #f6dcdf;
+  --color-liston-200: #edb8bf;
+  --color-liston-300: #df8c97;
+  --color-liston-400: #ca5e6e;
+  --color-liston-500: #b23f52;
+  --color-liston-600: #9b2c3c;
+  --color-liston-700: #812434;
+  --color-liston-800: #6a1f2c;
+
+  --color-olivo-50: #f4f6ec;
+  --color-olivo-100: #e6ebd2;
+  --color-olivo-200: #cdd8a8;
+  --color-olivo-300: #adc077;
+  --color-olivo-400: #8ea44f;
+  --color-olivo-500: #728838;
+  --color-olivo-600: #5a6d2b;
+  --color-olivo-700: #475524;
+  --color-olivo-800: #3a4520;
+  --color-olivo-900: #313a1e;
+
+  --color-piedra-50: #f6f7f5;
+  --color-piedra-100: #edefeb;
+  --color-piedra-200: #dde1db;
+  --color-piedra-300: #c3c9c0;
+  --color-piedra-400: #959d92;
+  --color-piedra-500: #6b7468;
+  --color-piedra-600: #555d53;
+  --color-piedra-700: #434a42;
+  --color-piedra-800: #2e332d;
+  --color-piedra-900: #1d211c;
+  --color-piedra-950: #111410;
 
   --animate-aparecer: aparecer 160ms ease-out;
   --animate-emerger: emerger 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
   --animate-deslizar: deslizar 220ms ease-out;
+  --animate-caer: caer 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
 
   @keyframes aparecer {
     from { opacity: 0; }
@@ -36,6 +65,10 @@
   @keyframes deslizar {
     from { transform: translateX(-100%); }
   }
+  /* El listón baja hasta la sección elegida */
+  @keyframes caer {
+    from { transform: translateY(-2.5rem); }
+  }
 }
 
 /* Las fuentes las carga next/font en el layout raíz como variables CSS */
@@ -45,14 +78,19 @@
 }
 
 body {
-  background: #f6f7fb;
-  color: #0f172a;
+  background: var(--color-papel);
+  color: var(--color-piedra-900);
   font-family: var(--font-sans);
 }
 
 ::selection {
   background: var(--color-marca-100);
   color: var(--color-marca-900);
+}
+
+/* Punta en V del listón, como la cinta que marca la página en una Biblia */
+.liston {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% calc(100% - 7px), 0 100%);
 }
 
 /* Sin animaciones para quien las desactiva en su sistema */

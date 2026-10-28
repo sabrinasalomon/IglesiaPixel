@@ -2,31 +2,21 @@
 
 import { Inbox, Lock, X } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
-import { aFecha, MESES } from "@/lib/formato";
 
 // Componentes básicos de interfaz compartidos por todos los módulos.
 
 const unir = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
 export function Tarjeta({ className, ...p }: ComponentProps<"div">) {
-  return (
-    <div
-      className={unir(
-        "rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_2px_8px_-2px_rgba(15,23,42,0.06)]",
-        className
-      )}
-      {...p}
-    />
-  );
+  return <div className={unir("rounded-xl border border-piedra-200 bg-white", className)} {...p} />;
 }
 
 type Variante = "primario" | "secundario" | "peligro" | "fantasma";
 const VARIANTES: Record<Variante, string> = {
-  primario:
-    "bg-marca-600 text-white shadow-sm shadow-marca-900/20 ring-1 ring-inset ring-white/10 hover:bg-marca-700",
-  secundario: "border border-slate-200 bg-white text-slate-700 shadow-sm shadow-slate-900/5 hover:border-slate-300 hover:bg-slate-50",
-  peligro: "border border-red-200 bg-white text-red-600 hover:border-red-300 hover:bg-red-50",
-  fantasma: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+  primario: "bg-marca-700 text-white hover:bg-marca-800",
+  secundario: "border border-piedra-300 bg-white text-piedra-800 hover:border-piedra-400 hover:bg-piedra-50",
+  peligro: "border border-red-200 bg-white text-red-700 hover:border-red-300 hover:bg-red-50",
+  fantasma: "text-piedra-600 hover:bg-piedra-100 hover:text-piedra-900",
 };
 
 export function Boton({
@@ -37,7 +27,7 @@ export function Boton({
   return (
     <button
       className={unir(
-        "inline-flex items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-sm font-semibold transition active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 disabled:active:translate-y-0",
+        "inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         VARIANTES[variante],
         className
       )}
@@ -46,8 +36,9 @@ export function Boton({
   );
 }
 
+// block: como inline dejarían bajo la línea el hueco de los descendentes
 const campo =
-  "w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm shadow-slate-900/[0.03] outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-marca-500 focus:ring-4 focus:ring-marca-500/15 disabled:bg-slate-50 disabled:text-slate-500";
+  "block w-full rounded-lg border border-piedra-300 bg-white px-3 py-2 text-sm text-piedra-900 outline-none transition placeholder:text-piedra-400 hover:border-piedra-400 focus:border-marca-600 focus:ring-4 focus:ring-marca-600/15 disabled:bg-piedra-50 disabled:text-piedra-500";
 
 export function Entrada({ className, ...p }: ComponentProps<"input">) {
   return <input className={unir(campo, className)} {...p} />;
@@ -64,35 +55,39 @@ export function Selector({ className, ...p }: ComponentProps<"select">) {
 export function Campo({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-xs font-semibold text-slate-600">{etiqueta}</span>
+      <span className="text-sm font-semibold text-piedra-700">{etiqueta}</span>
       {children}
     </label>
   );
 }
 
-type Tono = "gris" | "verde" | "rojo" | "ambar" | "marca" | "dorado" | "cielo" | "violeta";
+type Tono = "gris" | "verde" | "rojo" | "ambar" | "marca" | "liston";
 const TONOS: Record<Tono, string> = {
-  gris: "bg-slate-100 text-slate-700 ring-slate-500/15",
-  verde: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  gris: "bg-piedra-100 text-piedra-700 ring-piedra-500/15",
+  verde: "bg-olivo-50 text-olivo-700 ring-olivo-600/20",
   rojo: "bg-red-50 text-red-700 ring-red-600/15",
   ambar: "bg-amber-50 text-amber-800 ring-amber-600/20",
   marca: "bg-marca-50 text-marca-700 ring-marca-600/15",
-  dorado: "bg-dorado-50 text-dorado-700 ring-dorado-600/20",
-  cielo: "bg-sky-50 text-sky-700 ring-sky-600/15",
-  violeta: "bg-violet-50 text-violet-700 ring-violet-600/15",
+  liston: "bg-liston-50 text-liston-700 ring-liston-600/20",
 };
 
 export function Etiqueta({ tono = "gris", children }: { tono?: Tono; children: ReactNode }) {
   return (
     <span
       className={unir(
-        "inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset",
+        "inline-flex items-center whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset",
         TONOS[tono]
       )}
     >
       {children}
     </span>
   );
+}
+
+// Cinta con punta en V que cuelga del borde superior de su contenedor
+// (que debe tener position: relative). Marca lo importante.
+export function Liston({ className }: { className?: string }) {
+  return <span aria-hidden className={unir("liston pointer-events-none absolute top-0 w-2.5 bg-liston-600", className ?? "left-5 h-6")} />;
 }
 
 export function Encabezado({
@@ -105,10 +100,10 @@ export function Encabezado({
   acciones?: ReactNode;
 }) {
   return (
-    <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="font-titulo text-3xl font-semibold tracking-tight text-slate-900">{titulo}</h1>
-        {descripcion && <p className="mt-1.5 text-sm text-slate-500">{descripcion}</p>}
+        <h1 className="font-titulo text-4xl font-medium leading-tight text-piedra-900">{titulo}</h1>
+        {descripcion && <p className="mt-1 text-piedra-600">{descripcion}</p>}
       </div>
       {acciones && <div className="flex flex-wrap gap-2">{acciones}</div>}
     </div>
@@ -131,28 +126,28 @@ export function Modal({
   if (!abierto) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex animate-aparecer items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex animate-aparecer items-center justify-center bg-piedra-950/45 p-4"
       onClick={alCerrar}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className="max-h-[90vh] w-full max-w-lg animate-emerger overflow-y-auto rounded-2xl bg-white shadow-2xl ring-1 ring-slate-900/5"
+        className="max-h-[90vh] w-full max-w-lg animate-emerger overflow-y-auto rounded-xl bg-white shadow-2xl shadow-piedra-950/25"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-          <h2 className="font-titulo text-lg font-semibold text-slate-900">{titulo}</h2>
+        <div className="flex items-center justify-between border-b border-piedra-200 px-6 py-4">
+          <h2 className="font-titulo text-[1.375rem] font-medium leading-tight text-piedra-900">{titulo}</h2>
           <button
             onClick={alCerrar}
-            className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-md p-1.5 text-piedra-400 transition hover:bg-piedra-100 hover:text-piedra-700"
             aria-label="Cerrar"
           >
             <X size={18} />
           </button>
         </div>
         <div className="space-y-4 px-6 py-5">{children}</div>
-        {pie && <div className="flex justify-end gap-2 rounded-b-2xl border-t border-slate-100 bg-slate-50/70 px-6 py-3.5">{pie}</div>}
+        {pie && <div className="flex justify-end gap-2 rounded-b-xl border-t border-piedra-200 bg-piedra-50 px-6 py-3.5">{pie}</div>}
       </div>
     </div>
   );
@@ -161,23 +156,21 @@ export function Modal({
 export function Tabla({ children }: { children: ReactNode }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-marca-50/40 [&_tbody_tr:last-child_td]:border-b-0">
+      <table className="w-full text-left text-sm [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-marca-50/50 [&_tbody_tr:last-child_td]:border-b-0">
         {children}
       </table>
     </div>
   );
 }
 
-export const th = "border-b border-slate-200 bg-slate-50/80 px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500";
-export const td = "border-b border-slate-100 px-4 py-3 text-slate-700";
+export const th = "border-b border-piedra-200 px-4 py-2.5 text-xs font-semibold text-piedra-500";
+export const td = "border-b border-piedra-100 px-4 py-3 text-piedra-700";
 
 export function Vacio({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col items-center px-4 py-12 text-center">
-      <span className="mb-3 rounded-2xl bg-slate-100 p-3 text-slate-400">
-        <Inbox size={22} />
-      </span>
-      <p className="text-sm text-slate-500">{children}</p>
+      <Inbox size={22} className="mb-2 text-piedra-300" />
+      <p className="text-sm text-piedra-500">{children}</p>
     </div>
   );
 }
@@ -185,47 +178,29 @@ export function Vacio({ children }: { children: ReactNode }) {
 export function SinAcceso() {
   return (
     <Tarjeta className="flex flex-col items-center p-12 text-center">
-      <span className="mb-4 rounded-2xl bg-dorado-50 p-3 text-dorado-600 ring-1 ring-inset ring-dorado-600/15">
-        <Lock size={22} />
-      </span>
-      <p className="font-titulo text-lg font-semibold text-slate-900">No tienes acceso a este módulo</p>
-      <p className="mt-1 text-sm text-slate-500">Tu rol no tiene permiso para ver esta información.</p>
+      <Lock size={22} className="mb-3 text-piedra-400" />
+      <p className="font-titulo text-xl font-medium text-piedra-900">No tienes acceso a este módulo</p>
+      <p className="mt-1 text-sm text-piedra-500">Tu rol no tiene permiso para ver esta información.</p>
     </Tarjeta>
   );
 }
 
-export function Indicador({
-  titulo,
-  valor,
-  detalle,
-  icono,
-  tono = "marca",
-}: {
-  titulo: string;
-  valor: ReactNode;
-  detalle?: string;
-  icono: ReactNode;
-  tono?: Tono;
-}) {
+// Banda de cifras separadas por filetes, como los totales de un libro de registro.
+// Las celdas crecen para llenar cada fila, así no quedan huecos con 4 o 5 cifras.
+export function Indicadores({ children }: { children: ReactNode }) {
   return (
-    <Tarjeta className="p-5 transition hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-slate-500">{titulo}</p>
-        <span className={unir("shrink-0 rounded-xl p-2 ring-1 ring-inset", TONOS[tono])}>{icono}</span>
-      </div>
-      <p className="mt-3 text-3xl font-bold tracking-tight text-slate-900 tabular-nums">{valor}</p>
-      {detalle && <p className="mt-1 text-xs text-slate-500">{detalle}</p>}
+    <Tarjeta className="overflow-hidden">
+      <dl className="-ml-px -mt-px flex flex-wrap">{children}</dl>
     </Tarjeta>
   );
 }
 
-// Ficha de calendario con el día y el mes de una fecha AAAA-MM-DD
-export function FichaFecha({ iso }: { iso: string }) {
-  const f = aFecha(iso);
+export function Indicador({ titulo, valor, detalle }: { titulo: string; valor: ReactNode; detalle?: string }) {
   return (
-    <span className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-marca-50 leading-none text-marca-700 ring-1 ring-inset ring-marca-600/10">
-      <span className="text-[10px] font-bold uppercase">{MESES[f.getMonth()].slice(0, 3)}</span>
-      <span className="mt-0.5 text-base font-bold">{f.getDate()}</span>
-    </span>
+    <div className="min-w-0 flex-1 basis-40 border-l border-t border-piedra-200 px-5 py-4">
+      <dt className="text-sm text-piedra-600">{titulo}</dt>
+      <dd className="mt-1 font-titulo text-4xl font-medium leading-none text-piedra-900 tabular-nums lining-nums">{valor}</dd>
+      {detalle && <dd className="mt-2 text-xs text-piedra-500">{detalle}</dd>}
+    </div>
   );
 }

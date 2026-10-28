@@ -231,7 +231,7 @@ export function ProveedorDatos({ children }: { children: React.ReactNode }) {
 
   if (!valor) {
     return (
-      <div className="flex h-screen items-center justify-center text-sm text-slate-500">
+      <div className="flex h-screen items-center justify-center text-sm text-piedra-500">
         Cargando…
       </div>
     );

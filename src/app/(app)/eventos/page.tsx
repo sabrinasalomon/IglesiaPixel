@@ -120,27 +120,30 @@ export default function Eventos() {
       />
       {(error || errorAccion) && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorAccion}</p>}
       <Tarjeta>
-        <div className="flex items-center justify-between border-b border-slate-200 p-4">
-          <h2 className="text-lg font-semibold capitalize">{MESES[m - 1]} {a}</h2>
+        <div className="flex items-center justify-between border-b border-piedra-200 p-4">
+          <h2 className="font-titulo text-2xl font-medium capitalize">{MESES[m - 1]} {a}</h2>
           <div className="flex gap-1">
             <Boton variante="secundario" onClick={() => moverMes(-1)} aria-label="Mes anterior"><ChevronLeft size={16} /></Boton>
             <Boton variante="secundario" onClick={() => setMes(hoy.slice(0, 7))}>Hoy</Boton>
             <Boton variante="secundario" onClick={() => moverMes(1)} aria-label="Mes siguiente"><ChevronRight size={16} /></Boton>
           </div>
         </div>
-        <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50 text-center text-xs font-semibold text-slate-500">
-          {DIAS.map((d) => <div key={d} className="py-2">{d}</div>)}
+        <div className="grid grid-cols-7 border-b border-piedra-200 text-center text-xs font-semibold text-piedra-500">
+          {/* Los domingos en carmín, como en los calendarios impresos */}
+          {DIAS.map((d, i) => <div key={d} className={`py-2 ${i === 0 ? "text-liston-600" : ""}`}>{d}</div>)}
         </div>
         <div className="grid grid-cols-7">
-          {dias.map((d) => {
+          {dias.map((d, i) => {
             const delDia = eventos.filter((e) => e.fecha === d.fecha).sort((x, y) => x.hora.localeCompare(y.hora));
             return (
               <div
                 key={d.fecha}
-                className={`min-h-24 border-b border-r border-slate-100 p-1.5 ${d.delMes ? "" : "bg-slate-50/60 text-slate-400"}`}
+                className={`min-h-24 border-b border-r border-piedra-100 p-1.5 ${d.delMes ? "" : "bg-piedra-50/60 text-piedra-400"}`}
                 onDoubleClick={() => puedeEditar() && abrirNuevo(d.fecha)}
               >
-                <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs ${d.fecha === hoy ? "bg-marca-600 font-semibold text-white" : ""}`}>
+                <span className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-xs tabular-nums ${
+                    d.fecha === hoy ? "bg-marca-700 font-semibold text-white" : i % 7 === 0 && d.delMes ? "font-semibold text-liston-600" : ""
+                  }`}>
                   {d.dia}
                 </span>
                 <div className="mt-1 space-y-1">
@@ -148,8 +151,8 @@ export default function Eventos() {
                     <button
                       key={e.id}
                       onClick={() => setSeleccionado(e)}
-                      className={`block w-full truncate rounded px-1.5 py-0.5 text-left text-[11px] ${
-                        e.cancelado ? "bg-slate-100 text-slate-400 line-through" : e.ministerioId ? "bg-emerald-50 text-emerald-800" : "bg-marca-50 text-marca-800"
+                      className={`block w-full truncate rounded-sm px-1.5 py-0.5 text-left text-[11px] ${
+                        e.cancelado ? "bg-piedra-100 text-piedra-400 line-through" : e.ministerioId ? "bg-olivo-50 text-olivo-800" : "bg-marca-50 text-marca-800"
                       }`}
                     >
                       {e.hora} {e.titulo}
@@ -189,7 +192,7 @@ export default function Eventos() {
             {usuario!.rol !== "miembro" && (
               <p><strong>Responsables:</strong> {seleccionado.responsables.map(nombreMiembro).join(", ") || "Sin asignar"}</p>
             )}
-            <p className="text-slate-600">{seleccionado.descripcion}</p>
+            <p className="text-piedra-600">{seleccionado.descripcion}</p>
           </div>
         )}
       </Modal>
