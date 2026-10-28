@@ -55,7 +55,7 @@ export function PantallaAcceso({
         </figure>
 
         <div className="relative mt-auto flex justify-center">
-          <Sprite nombre="iglesia" ancho={300} className="relative z-10 -mb-3 animate-flotar xl:w-[340px]!" />
+          <Sprite nombre="iglesia" ancho={300} className="relative z-10 -mb-3 xl:w-[340px]!" />
           {/* El humanito espera flotando junto al camino; al entrar, camina hasta la puerta */}
           <div
             className={`absolute bottom-0 z-20 -mb-2 ${entrando ? "animate-caminar" : "left-[6%] -translate-x-1/2"}`}
