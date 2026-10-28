@@ -53,7 +53,7 @@ export default function Login() {
           <Campo etiqueta="Contraseña">
             <Entrada type="password" autoComplete="current-password" value={contrasena} onChange={(e) => setContrasena(e.target.value)} />
           </Campo>
-          {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {error && <p className=" bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
           <Boton type="submit" className="w-full py-2.5" disabled={enviando}>{enviando ? "Entrando…" : "Iniciar sesión"}</Boton>
           <button type="button" onClick={() => { setRecuperando(true); setError(""); }} className="w-full text-center text-sm font-semibold text-marca-700 hover:underline">
             ¿Olvidaste tu contraseña?
@@ -64,8 +64,8 @@ export default function Login() {
           <Campo etiqueta="Correo electrónico">
             <Entrada type="email" value={correo} onChange={(e) => setCorreo(e.target.value)} placeholder="nombre@correo.mx" />
           </Campo>
-          {enviado && <p className="rounded-lg bg-olivo-50 px-3 py-2 text-sm text-olivo-700">Si el correo está registrado, recibirás el enlace en unos minutos.</p>}
-          {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {enviado && <p className=" bg-olivo-50 px-3 py-2 text-sm text-olivo-700">Si el correo está registrado, recibirás el enlace en unos minutos.</p>}
+          {error && <p className=" bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
           <div className="flex gap-2">
             <Boton variante="secundario" onClick={() => { setRecuperando(false); setEnviado(false); setError(""); }}>Volver</Boton>
             <Boton className="flex-1" disabled={enviando} onClick={pedirEnlace}>Enviar enlace</Boton>

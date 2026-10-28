@@ -103,11 +103,11 @@ export default function Donaciones() {
         }
       />
       {!puedeRegistrar && (
-        <p className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <p className="mb-4 flex items-center gap-2 bg-dorado-50 px-3 py-2 text-sm text-dorado-800">
           <Lock size={14} /> Tienes acceso de solo lectura.
         </p>
       )}
-      {(error || errorAccion) && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorAccion}</p>}
+      {(error || errorAccion) && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorAccion}</p>}
 
       <Tarjeta className="mb-4 flex flex-wrap items-end gap-3 p-4">
         <Campo etiqueta="Desde"><Entrada type="date" value={desde} onChange={(e) => setDesde(e.target.value)} /></Campo>
@@ -140,7 +140,7 @@ export default function Donaciones() {
                     <td className={`${td} text-right font-medium ${a.anulada ? "line-through" : ""}`}>{mxn(a.monto)}</td>
                     {puedeRegistrar && (
                       <td className={`${td} text-right`}>
-                        <button className="text-xs text-piedra-500 hover:text-red-600" onClick={() => alternarAnulada(a)}>
+                        <button className="text-xs text-piedra-500 hover:text-liston-600" onClick={() => alternarAnulada(a)}>
                           {a.anulada ? "Restaurar" : "Anular"}
                         </button>
                       </td>
@@ -219,7 +219,7 @@ export default function Donaciones() {
                 </Selector>
               </Campo>
             )}
-            {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
+            {errorForm && <p className="text-sm text-liston-600">{errorForm}</p>}
           </>
         )}
       </Modal>

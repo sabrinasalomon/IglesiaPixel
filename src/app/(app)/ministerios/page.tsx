@@ -65,7 +65,7 @@ export default function Ministerios() {
         acciones={puedeCrear && <Boton onClick={() => { setErrorAccion(""); setNuevo({ nombre: "", descripcion: "", coordinadorId: "" }); }}><Plus size={16} /> Nuevo ministerio</Boton>}
       />
       {(error || (errorAccion && !abierto && !nuevo)) && (
-        <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorAccion}</p>
+        <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorAccion}</p>
       )}
       {!cargando && ministerios.length === 0 && (
         <Tarjeta className="p-8 text-center text-sm text-piedra-500">Esta sede todavía no tiene ministerios registrados.</Tarjeta>
@@ -78,7 +78,7 @@ export default function Ministerios() {
             <Tarjeta key={m.id} className="flex flex-col p-5">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <span className="rounded-lg bg-marca-50 p-2 text-marca-700 ring-1 ring-inset ring-marca-600/15"><UsersRound size={18} /></span>
+                  <span className=" bg-marca-50 p-2 text-marca-700 ring-1 ring-inset ring-marca-600/15"><UsersRound size={18} /></span>
                   <h2 className="font-semibold">{m.nombre}</h2>
                 </div>
                 {mio && <Etiqueta tono="marca">Tu ministerio</Etiqueta>}
@@ -130,7 +130,7 @@ export default function Ministerios() {
                 </Boton>
               </div>
             )}
-            <ul className="divide-y divide-piedra-100 rounded-lg border border-piedra-200">
+            <ul className="divide-y divide-piedra-100 border border-piedra-200">
               {abierto.integrantes.map((id) => (
                 <li key={id} className="flex items-center justify-between px-3 py-2 text-sm">
                   <span>
@@ -138,7 +138,7 @@ export default function Ministerios() {
                   </span>
                   {puedeEditar(abierto) && id !== abierto.coordinadorId && (
                     <button
-                      className="text-piedra-400 hover:text-red-600"
+                      className="text-piedra-400 hover:text-liston-600"
                       aria-label="Quitar del ministerio"
                       disabled={guardando}
                       onClick={() => ejecutar(() => repo.ministerios.quitarIntegrante(abierto.id, id))}
@@ -149,7 +149,7 @@ export default function Ministerios() {
                 </li>
               ))}
             </ul>
-            {errorAccion && <p className="text-sm text-red-600">{errorAccion}</p>}
+            {errorAccion && <p className="text-sm text-liston-600">{errorAccion}</p>}
             <div>
               <h3 className="mb-2 text-sm font-semibold">Actividades programadas</h3>
               <ul className="space-y-1 text-sm text-piedra-600">
@@ -178,7 +178,7 @@ export default function Ministerios() {
                 {miembros.filter((x) => x.activo).map((x) => <option key={x.id} value={x.id}>{x.nombre}</option>)}
               </Selector>
             </Campo>
-            {errorAccion && <p className="text-sm text-red-600">{errorAccion}</p>}
+            {errorAccion && <p className="text-sm text-liston-600">{errorAccion}</p>}
           </>
         )}
       </Modal>

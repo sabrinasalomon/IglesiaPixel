@@ -1,22 +1,23 @@
 "use client";
 
 import { Inbox, Lock, X } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from "react";
 
-// Componentes básicos de interfaz compartidos por todos los módulos.
+// Componentes básicos de interfaz compartidos por todos los módulos. El estilo es
+// de pixel art: esquinas rectas, bordes gruesos y sombras duras sin desenfoque.
 
 const unir = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
 export function Tarjeta({ className, ...p }: ComponentProps<"div">) {
-  return <div className={unir("rounded-xl border border-piedra-200 bg-white", className)} {...p} />;
+  return <div className={unir("pixel-suave bg-piedra-50", className)} {...p} />;
 }
 
 type Variante = "primario" | "secundario" | "peligro" | "fantasma";
 const VARIANTES: Record<Variante, string> = {
-  primario: "bg-marca-700 text-white hover:bg-marca-800",
-  secundario: "border border-piedra-300 bg-white text-piedra-800 hover:border-piedra-400 hover:bg-piedra-50",
-  peligro: "border border-red-200 bg-white text-red-700 hover:border-red-300 hover:bg-red-50",
-  fantasma: "text-piedra-600 hover:bg-piedra-100 hover:text-piedra-900",
+  primario: "border-2 border-piedra-900 bg-marca-700 text-white shadow-[3px_3px_0_0_var(--color-piedra-900)] hover:bg-marca-600",
+  secundario: "border-2 border-piedra-900 bg-piedra-50 text-piedra-900 shadow-[3px_3px_0_0_var(--color-piedra-900)] hover:bg-dorado-100",
+  peligro: "border-2 border-liston-700 bg-piedra-50 text-liston-700 shadow-[3px_3px_0_0_var(--color-liston-700)] hover:bg-liston-50",
+  fantasma: "text-piedra-600 hover:bg-piedra-200/60 hover:text-piedra-900",
 };
 
 export function Boton({
@@ -27,7 +28,8 @@ export function Boton({
   return (
     <button
       className={unir(
-        "inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        // Al presionar, el botón baja hasta su sombra, como una tecla
+        "inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-bold transition-[background-color,transform,box-shadow] duration-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dorado-400 focus-visible:ring-offset-2 focus-visible:ring-offset-piedra-50 enabled:active:translate-x-[3px] enabled:active:translate-y-[3px] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50",
         VARIANTES[variante],
         className
       )}
@@ -38,7 +40,7 @@ export function Boton({
 
 // block: como inline dejarían bajo la línea el hueco de los descendentes
 const campo =
-  "block w-full rounded-lg border border-piedra-300 bg-white px-3 py-2 text-sm text-piedra-900 outline-none transition placeholder:text-piedra-400 hover:border-piedra-400 focus:border-marca-600 focus:ring-4 focus:ring-marca-600/15 disabled:bg-piedra-50 disabled:text-piedra-500";
+  "block w-full border-2 border-piedra-700 bg-white px-3 py-2 text-sm text-piedra-900 shadow-[inset_2px_2px_0_0_var(--color-piedra-200)] outline-none transition placeholder:text-piedra-400 focus:border-marca-600 focus:ring-4 focus:ring-dorado-300/60 disabled:bg-piedra-100 disabled:text-piedra-500";
 
 export function Entrada({ className, ...p }: ComponentProps<"input">) {
   return <input className={unir(campo, className)} {...p} />;
@@ -55,7 +57,7 @@ export function Selector({ className, ...p }: ComponentProps<"select">) {
 export function Campo({ etiqueta, children }: { etiqueta: string; children: ReactNode }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-sm font-semibold text-piedra-700">{etiqueta}</span>
+      <span className="text-sm font-bold text-piedra-700">{etiqueta}</span>
       {children}
     </label>
   );
@@ -63,19 +65,19 @@ export function Campo({ etiqueta, children }: { etiqueta: string; children: Reac
 
 type Tono = "gris" | "verde" | "rojo" | "ambar" | "marca" | "liston";
 const TONOS: Record<Tono, string> = {
-  gris: "bg-piedra-100 text-piedra-700 ring-piedra-500/15",
-  verde: "bg-olivo-50 text-olivo-700 ring-olivo-600/20",
-  rojo: "bg-red-50 text-red-700 ring-red-600/15",
-  ambar: "bg-amber-50 text-amber-800 ring-amber-600/20",
-  marca: "bg-marca-50 text-marca-700 ring-marca-600/15",
-  liston: "bg-liston-50 text-liston-700 ring-liston-600/20",
+  gris: "bg-piedra-100 text-piedra-700 ring-piedra-500/60",
+  verde: "bg-olivo-50 text-olivo-700 ring-olivo-600/70",
+  rojo: "bg-liston-50 text-liston-700 ring-liston-600/70",
+  ambar: "bg-dorado-100 text-dorado-700 ring-dorado-600/70",
+  marca: "bg-marca-50 text-marca-700 ring-marca-600/60",
+  liston: "bg-liston-50 text-liston-700 ring-liston-600/70",
 };
 
 export function Etiqueta({ tono = "gris", children }: { tono?: Tono; children: ReactNode }) {
   return (
     <span
       className={unir(
-        "inline-flex items-center whitespace-nowrap rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset",
+        "inline-flex items-center whitespace-nowrap px-2 py-0.5 text-xs font-bold ring-2 ring-inset",
         TONOS[tono]
       )}
     >
@@ -102,7 +104,7 @@ export function Encabezado({
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="font-titulo text-4xl font-medium leading-tight text-piedra-900">{titulo}</h1>
+        <h1 className="font-titulo text-4xl font-semibold leading-tight text-piedra-900">{titulo}</h1>
         {descripcion && <p className="mt-1 text-piedra-600">{descripcion}</p>}
       </div>
       {acciones && <div className="flex flex-wrap gap-2">{acciones}</div>}
@@ -126,28 +128,28 @@ export function Modal({
   if (!abierto) return null;
   return (
     <div
-      className="fixed inset-0 z-50 flex animate-aparecer items-center justify-center bg-piedra-950/45 p-4"
+      className="fixed inset-0 z-50 flex animate-aparecer items-center justify-center bg-marca-950/60 p-4"
       onClick={alCerrar}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className="max-h-[90vh] w-full max-w-lg animate-emerger overflow-y-auto rounded-xl bg-white shadow-2xl shadow-piedra-950/25"
+        className="pixel max-h-[90vh] w-full max-w-lg animate-emerger overflow-y-auto bg-piedra-50"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-piedra-200 px-6 py-4">
-          <h2 className="font-titulo text-[1.375rem] font-medium leading-tight text-piedra-900">{titulo}</h2>
+        <div className="flex items-center justify-between border-b-[3px] border-piedra-900 bg-marca-800 px-6 py-3.5">
+          <h2 className="font-titulo text-[1.375rem] font-medium leading-tight text-white">{titulo}</h2>
           <button
             onClick={alCerrar}
-            className="rounded-md p-1.5 text-piedra-400 transition hover:bg-piedra-100 hover:text-piedra-700"
+            className="p-1.5 text-marca-100 transition hover:bg-marca-700 hover:text-white"
             aria-label="Cerrar"
           >
             <X size={18} />
           </button>
         </div>
         <div className="space-y-4 px-6 py-5">{children}</div>
-        {pie && <div className="flex justify-end gap-2 rounded-b-xl border-t border-piedra-200 bg-piedra-50 px-6 py-3.5">{pie}</div>}
+        {pie && <div className="flex justify-end gap-2 border-t-2 border-piedra-300 bg-piedra-100 px-6 py-3.5">{pie}</div>}
       </div>
     </div>
   );
@@ -156,15 +158,15 @@ export function Modal({
 export function Tabla({ children }: { children: ReactNode }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-marca-50/50 [&_tbody_tr:last-child_td]:border-b-0">
+      <table className="w-full text-left text-sm [&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-dorado-100/60 [&_tbody_tr:last-child_td]:border-b-0">
         {children}
       </table>
     </div>
   );
 }
 
-export const th = "border-b border-piedra-200 px-4 py-2.5 text-xs font-semibold text-piedra-500";
-export const td = "border-b border-piedra-100 px-4 py-3 text-piedra-700";
+export const th = "border-b-2 border-piedra-800 bg-piedra-100 px-4 py-2.5 font-titulo text-[13px] font-medium text-piedra-700";
+export const td = "border-b border-piedra-200 px-4 py-3 text-piedra-700";
 
 export function Vacio({ children }: { children: ReactNode }) {
   return (
@@ -179,7 +181,7 @@ export function SinAcceso() {
   return (
     <Tarjeta className="flex flex-col items-center p-12 text-center">
       <Lock size={22} className="mb-3 text-piedra-400" />
-      <p className="font-titulo text-xl font-medium text-piedra-900">No tienes acceso a este módulo</p>
+      <p className="font-titulo text-xl font-semibold text-piedra-900">No tienes acceso a este módulo</p>
       <p className="mt-1 text-sm text-piedra-500">Tu rol no tiene permiso para ver esta información.</p>
     </Tarjeta>
   );
@@ -190,17 +192,52 @@ export function SinAcceso() {
 export function Indicadores({ children }: { children: ReactNode }) {
   return (
     <Tarjeta className="overflow-hidden">
-      <dl className="-ml-px -mt-px flex flex-wrap">{children}</dl>
+      <dl className="-ml-0.5 -mt-0.5 flex flex-wrap">{children}</dl>
     </Tarjeta>
   );
 }
 
 export function Indicador({ titulo, valor, detalle }: { titulo: string; valor: ReactNode; detalle?: string }) {
   return (
-    <div className="min-w-0 flex-1 basis-40 border-l border-t border-piedra-200 px-5 py-4">
-      <dt className="text-sm text-piedra-600">{titulo}</dt>
-      <dd className="mt-1 font-titulo text-4xl font-medium leading-none text-piedra-900 tabular-nums lining-nums">{valor}</dd>
+    <div className="min-w-0 flex-1 basis-40 border-l-2 border-t-2 border-piedra-300 px-5 py-4">
+      <dt className="text-sm font-semibold text-piedra-600">{titulo}</dt>
+      <dd className="mt-1 font-titulo text-4xl font-medium leading-none text-piedra-900 tabular-nums lining-nums">
+        {typeof valor === "number" ? <Contador valor={valor} /> : valor}
+      </dd>
       {detalle && <dd className="mt-2 text-xs text-piedra-500">{detalle}</dd>}
     </div>
   );
+}
+
+// Cuenta desde cero hasta la cifra al aparecer, como un marcador de puntos.
+// Quien desactiva las animaciones ve la cifra final de inmediato.
+export function Contador({ valor, formato = (n: number) => n.toLocaleString("es-MX") }: { valor: number; formato?: (n: number) => string }) {
+  const [mostrado, setMostrado] = useState(valor);
+  const anterior = useRef(0);
+  useEffect(() => {
+    const desde = anterior.current;
+    anterior.current = valor;
+    if (desde === valor || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setMostrado(valor);
+      return;
+    }
+    const inicio = performance.now();
+    const duracion = 700;
+    let cuadro = 0;
+    const paso = (t: number) => {
+      const avance = Math.min(1, (t - inicio) / duracion);
+      const suave = 1 - (1 - avance) ** 3;
+      setMostrado(Math.round(desde + (valor - desde) * suave));
+      if (avance < 1) cuadro = requestAnimationFrame(paso);
+    };
+    cuadro = requestAnimationFrame(paso);
+    return () => cancelAnimationFrame(cuadro);
+  }, [valor]);
+  return <>{formato(mostrado)}</>;
+}
+
+// Dibujo en pixel art de /public/pixel. Decorativo: no lo leen los lectores de pantalla.
+export function Sprite({ nombre, ancho, className }: { nombre: "iglesia" | "cruz" | "biblia" | "persona"; ancho: number; className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element -- imagen fija y pequeña, sin optimizar a propósito
+  return <img src={`/pixel/${nombre}.png`} alt="" aria-hidden width={ancho} className={unir("sprite h-auto", className)} style={{ width: ancho }} />;
 }

@@ -83,8 +83,8 @@ export default function Miembros() {
             <option value="todos">Todos</option>
           </Selector>
         </div>
-        {errorAccion && <p className="m-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorAccion}</p>}
-        {error && <p className="m-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {errorAccion && <p className="m-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{errorAccion}</p>}
+        {error && <p className="m-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
         <Tabla>
           <thead>
             <tr>
@@ -131,7 +131,7 @@ export default function Miembros() {
           <Campo etiqueta="Fecha de ingreso"><Entrada type="date" value={form.fechaIngreso} onChange={(e) => setForm({ ...form, fechaIngreso: e.target.value })} /></Campo>
         </div>
         <Campo etiqueta="Correo electrónico"><Entrada type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} /></Campo>
-        {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
+        {errorForm && <p className="text-sm text-liston-600">{errorForm}</p>}
       </Modal>
     </>
   );

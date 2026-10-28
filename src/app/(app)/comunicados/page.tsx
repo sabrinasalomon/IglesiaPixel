@@ -66,7 +66,7 @@ export default function Comunicados() {
           )
         }
       />
-      {(error || errorAccion) && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorAccion}</p>}
+      {(error || errorAccion) && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorAccion}</p>}
       <div className="space-y-3">
         {cargando && <Vacio>Cargando…</Vacio>}
         {!cargando && lista.length === 0 && <Tarjeta><Vacio>No hay anuncios publicados.</Vacio></Tarjeta>}
@@ -88,7 +88,7 @@ export default function Comunicados() {
                   <Boton variante="fantasma" aria-label="Editar" onClick={() => abrir({ titulo: a.titulo, contenido: a.contenido, fechaPublicacion: a.fechaPublicacion, importante: a.importante, sedeId: a.sedeId }, a.id)}>
                     <Pencil size={15} />
                   </Boton>
-                  <Boton variante="fantasma" aria-label="Eliminar" className="hover:text-red-600" onClick={() => eliminar(a.id)}>
+                  <Boton variante="fantasma" aria-label="Eliminar" className="hover:text-liston-600" onClick={() => eliminar(a.id)}>
                     <Trash2 size={15} />
                   </Boton>
                 </div>
@@ -128,7 +128,7 @@ export default function Comunicados() {
               <input type="checkbox" checked={form.importante} onChange={(e) => setForm({ ...form, importante: e.target.checked })} />
               Marcar como aviso importante
             </label>
-            {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
+            {errorForm && <p className="text-sm text-liston-600">{errorForm}</p>}
           </>
         )}
       </Modal>

@@ -62,8 +62,8 @@ export default function Usuarios() {
           )
         }
       />
-      {aviso && <p className="mb-4 rounded-lg bg-olivo-50 px-3 py-2 text-sm text-olivo-700">{aviso}</p>}
-      {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {aviso && <p className="mb-4 bg-olivo-50 px-3 py-2 text-sm text-olivo-700">{aviso}</p>}
+      {error && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
       <Tarjeta>
         <Tabla>
           <thead>
@@ -104,7 +104,7 @@ export default function Usuarios() {
             <SelectoresRolSede rol={nuevo.rol} sedeId={nuevo.sedeId} alCambiar={(rol, s) => setNuevo({ ...nuevo, rol, sedeId: s, miembroId: s === nuevo.sedeId ? nuevo.miembroId : undefined })} />
             <VinculoMiembro sedeId={nuevo.sedeId} miembroId={nuevo.miembroId} alCambiar={(miembroId) => setNuevo({ ...nuevo, miembroId })} />
             <p className="text-xs text-piedra-500">La persona recibirá un correo con un enlace para crear su contraseña.</p>
-            {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
+            {errorForm && <p className="text-sm text-liston-600">{errorForm}</p>}
           </>
         )}
       </Modal>
@@ -123,7 +123,7 @@ export default function Usuarios() {
               <input type="checkbox" checked={editando.activo} onChange={(e) => setEditando({ ...editando, activo: e.target.checked })} />
               Cuenta activa (desmarca para bloquear el acceso)
             </label>
-            {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
+            {errorForm && <p className="text-sm text-liston-600">{errorForm}</p>}
           </>
         )}
       </Modal>

@@ -105,7 +105,7 @@ export default function Asistencia() {
   return (
     <>
       <Encabezado titulo="Control de asistencia" descripcion="Selecciona el evento y marca a los presentes" />
-      {error && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <Tarjeta className="lg:col-span-3">
           <div className="grid gap-3 border-b border-piedra-200 p-4 sm:grid-cols-2">
@@ -134,8 +134,8 @@ export default function Asistencia() {
                   <Boton disabled={guardando} onClick={guardar}>Guardar asistencia</Boton>
                 </div>
               </div>
-              {guardado && <p className="mx-4 mb-3 rounded-lg bg-olivo-50 px-3 py-2 text-sm text-olivo-700">Asistencia guardada.</p>}
-              {errorGuardar && <p className="mx-4 mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{errorGuardar}</p>}
+              {guardado && <p className="mx-4 mb-3 bg-olivo-50 px-3 py-2 text-sm text-olivo-700">Asistencia guardada.</p>}
+              {errorGuardar && <p className="mx-4 mb-3 bg-liston-50 px-3 py-2 text-sm text-liston-700">{errorGuardar}</p>}
               <ul className="max-h-[480px] divide-y divide-piedra-100 overflow-y-auto">
                 {visibles.map((m) => (
                   <li key={m.id} className="flex items-center justify-between px-4 py-2">
@@ -144,14 +144,14 @@ export default function Asistencia() {
                       <button
                         onClick={() => setMarcas({ ...marcas, [m.id]: true })}
                         aria-pressed={!!marcas[m.id]}
-                        className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold ${marcas[m.id] ? "bg-marca-700 text-white" : "bg-piedra-100 text-piedra-600 hover:bg-piedra-200"}`}
+                        className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold ${marcas[m.id] ? "bg-marca-700 text-white" : "bg-piedra-100 text-piedra-600 hover:bg-piedra-200"}`}
                       >
                         <Check size={14} /> Presente
                       </button>
                       <button
                         onClick={() => setMarcas({ ...marcas, [m.id]: false })}
                         aria-pressed={!marcas[m.id]}
-                        className={`flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold ${!marcas[m.id] ? "bg-piedra-600 text-white" : "bg-piedra-100 text-piedra-600 hover:bg-piedra-200"}`}
+                        className={`flex items-center gap-1 px-2.5 py-1 text-xs font-semibold ${!marcas[m.id] ? "bg-piedra-600 text-white" : "bg-piedra-100 text-piedra-600 hover:bg-piedra-200"}`}
                       >
                         <X size={14} /> Ausente
                       </button>

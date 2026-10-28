@@ -118,7 +118,7 @@ export default function Eventos() {
         descripcion="Cultos, reuniones y actividades de la sede"
         acciones={puedeEditar() && <Boton onClick={() => abrirNuevo()}><Plus size={16} /> Nuevo evento</Boton>}
       />
-      {(error || errorAccion) && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorAccion}</p>}
+      {(error || errorAccion) && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorAccion}</p>}
       <Tarjeta>
         <div className="flex items-center justify-between border-b border-piedra-200 p-4">
           <h2 className="font-titulo text-2xl font-medium capitalize">{MESES[m - 1]} {a}</h2>
@@ -151,7 +151,7 @@ export default function Eventos() {
                     <button
                       key={e.id}
                       onClick={() => setSeleccionado(e)}
-                      className={`block w-full truncate rounded-sm px-1.5 py-0.5 text-left text-[11px] ${
+                      className={`block w-full truncate px-1.5 py-0.5 text-left text-[11px] ${
                         e.cancelado ? "bg-piedra-100 text-piedra-400 line-through" : e.ministerioId ? "bg-olivo-50 text-olivo-800" : "bg-marca-50 text-marca-800"
                       }`}
                     >
@@ -233,7 +233,7 @@ export default function Eventos() {
               </Selector>
             </Campo>
             <Campo etiqueta="Descripción"><AreaTexto value={form.descripcion} onChange={(e) => setForm({ ...form, descripcion: e.target.value })} /></Campo>
-            {errorForm && <p className="text-sm text-red-600">{errorForm}</p>}
+            {errorForm && <p className="text-sm text-liston-600">{errorForm}</p>}
           </>
         )}
       </Modal>

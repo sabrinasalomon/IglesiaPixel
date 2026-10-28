@@ -68,7 +68,7 @@ export default function Restablecer() {
           <Campo etiqueta="Confirmar contraseña">
             <Entrada type="password" autoComplete="new-password" value={confirmacion} onChange={(e) => setConfirmacion(e.target.value)} />
           </Campo>
-          {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {error && <p className=" bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
           <Boton type="submit" className="w-full py-2.5" disabled={guardando}>Guardar y entrar</Boton>
         </form>
       )}

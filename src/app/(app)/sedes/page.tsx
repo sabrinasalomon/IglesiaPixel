@@ -48,7 +48,7 @@ export default function Sedes() {
           <Tarjeta key={s.id} className={`p-5 ${s.id === sedeId ? "ring-2 ring-marca-200" : ""}`}>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <span className="rounded-lg bg-marca-50 p-2 text-marca-700 ring-1 ring-inset ring-marca-600/15"><Building2 size={18} /></span>
+                <span className=" bg-marca-50 p-2 text-marca-700 ring-1 ring-inset ring-marca-600/15"><Building2 size={18} /></span>
                 <h2 className="font-semibold">{s.nombre}</h2>
               </div>
               {s.activa ? <Etiqueta tono="verde">Activa</Etiqueta> : <Etiqueta>Inactiva</Etiqueta>}
@@ -88,7 +88,7 @@ export default function Sedes() {
               <Campo etiqueta="Teléfono"><Entrada value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} /></Campo>
               <Campo etiqueta="Correo"><Entrada type="email" value={form.correo} onChange={(e) => setForm({ ...form, correo: e.target.value })} /></Campo>
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && <p className="text-sm text-liston-600">{error}</p>}
           </>
         )}
       </Modal>

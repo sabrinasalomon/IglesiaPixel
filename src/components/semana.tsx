@@ -23,15 +23,15 @@ export function Semana({ eventos, hoy }: { eventos: Evento[]; hoy: string }) {
 
   return (
     <Tarjeta className="overflow-hidden">
-      <div className="flex items-baseline justify-between gap-4 border-b border-piedra-200 px-5 py-3.5">
+      <div className="flex items-baseline justify-between gap-4 border-b-2 border-piedra-300 px-5 py-3.5">
         <h2 className="font-titulo text-xl font-medium text-piedra-900">Próximos 7 días</h2>
         <Link href="/eventos" className="text-sm font-semibold text-marca-700 hover:underline">Ver calendario</Link>
       </div>
-      <ol className="grid divide-y divide-piedra-200 md:grid-cols-7 md:divide-x md:divide-y-0">
+      <ol className="grid divide-y-2 divide-piedra-200 md:grid-cols-7 md:divide-x-2 md:divide-y-0">
         {dias.map(({ fecha, d, delDia }, i) => (
-          <li key={fecha} className={`flex gap-4 px-5 py-3 md:block md:min-h-44 md:px-3 md:pb-4 ${i === 0 ? "bg-marca-50/70" : ""}`}>
+          <li key={fecha} className={`flex gap-4 px-5 py-3 md:block md:min-h-44 md:px-3 md:pb-4 ${i === 0 ? "bg-dorado-100" : ""}`}>
             <p className="w-16 shrink-0 md:mb-3 md:w-auto">
-              <span className={`block text-xs font-semibold ${i === 0 ? "text-marca-700" : "text-piedra-500"}`}>
+              <span className={`block text-xs font-semibold ${i === 0 ? "text-dorado-700" : "text-piedra-500"}`}>
                 {i === 0 ? "Hoy" : DIAS[d.getDay()]}
               </span>
               <span className={`font-titulo text-2xl font-medium leading-none lining-nums ${d.getDay() === 0 ? "text-liston-600" : "text-piedra-900"}`}>

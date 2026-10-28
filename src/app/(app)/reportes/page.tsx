@@ -155,7 +155,7 @@ export default function Reportes() {
             </>
           }
         />
-        {(error || errorExportar) && <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error || errorExportar}</p>}
+        {(error || errorExportar) && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorExportar}</p>}
         <div className="mb-4 flex flex-wrap gap-2">
           {permitidos.map((p) => (
             <button

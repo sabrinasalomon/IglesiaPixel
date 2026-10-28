@@ -80,7 +80,7 @@ export default function Configuracion() {
         acciones={!soloLectura && <Boton onClick={guardar}>Guardar cambios</Boton>}
       />
       {mensaje && (
-        <p className={`mb-4 rounded-lg px-3 py-2 text-sm ${mensaje.ok ? "bg-olivo-50 text-olivo-700" : "bg-red-50 text-red-700"}`}>{mensaje.texto}</p>
+        <p className={`mb-4 px-3 py-2 text-sm ${mensaje.ok ? "bg-olivo-50 text-olivo-700" : "bg-liston-50 text-liston-700"}`}>{mensaje.texto}</p>
       )}
       <fieldset disabled={soloLectura} className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Tarjeta className="space-y-4 p-5">
@@ -109,12 +109,12 @@ export default function Configuracion() {
 
         <Tarjeta className="p-5 lg:col-span-2">
           <h2 className="mb-3 font-semibold">Horarios habituales de reunión · {sede.nombre}</h2>
-          <ul className="divide-y divide-piedra-100 rounded-lg border border-piedra-200">
+          <ul className="divide-y divide-piedra-100 border border-piedra-200">
             {horarios.map((h) => (
               <li key={h.id} className="flex items-center justify-between px-3 py-2 text-sm">
                 <span><strong>{h.dia}</strong> · {h.hora} · {h.tipo}</span>
                 {!soloLectura && (
-                  <button type="button" aria-label="Quitar horario" className="text-piedra-400 hover:text-red-600" onClick={() => quitarHorario(h.id)}>
+                  <button type="button" aria-label="Quitar horario" className="text-piedra-400 hover:text-liston-600" onClick={() => quitarHorario(h.id)}>
                     <Trash2 size={15} />
                   </button>
                 )}
