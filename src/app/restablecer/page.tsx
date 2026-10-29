@@ -124,22 +124,33 @@ function Fuerza({ contrasena }: { contrasena: string }) {
   );
 }
 
-// Interior de la iglesia con Vivian y su globo de diálogo, como en un videojuego
+// Interior de la iglesia con Vivian dentro y, abajo, su cuadro de diálogo con
+// retrato, como en los videojuegos en pixel art
 function Escena() {
   return (
-    <div className="relative mt-auto flex items-end justify-between gap-4">
-      {/* eslint-disable-next-line @next/next/no-img-element -- dibujo fijo, sin optimizar a propósito */}
-      <img src="/pixel/restablecer.png" alt="" aria-hidden width={746} height={423} className="order-2 -mb-3 h-auto w-[66%] max-w-[520px] select-none" />
-      <div className="order-1 z-20 -mb-2 flex shrink-0 flex-col items-start">
-        <figure className="relative mb-3 w-52 border-4 border-piedra-50 bg-marca-950 px-4 py-3 shadow-[4px_4px_0_0_var(--color-piedra-950)] outline-2 outline-piedra-950">
-          <blockquote className="font-titulo text-lg font-semibold leading-snug text-white">«Todo tiene solución.»</blockquote>
-          <figcaption className="mt-2 border-t-2 border-dashed border-marca-700 pt-1 text-sm font-bold text-dorado-300">Vivian</figcaption>
-          {/* Piquito del globo apuntando a Vivian */}
-          <span aria-hidden className="absolute -bottom-[14px] left-8 h-0 w-0 border-x-[10px] border-t-[12px] border-x-transparent border-t-piedra-50" />
-        </figure>
-        {/* eslint-disable-next-line @next/next/no-img-element -- sprite a doble tamaño exacto para que se vea nítido */}
-        <img src="/pixel/yo.png" alt="" aria-hidden width={80} height={208} className="sprite ml-4" style={{ width: 80 }} />
+    <div className="relative -mx-12 mt-auto xl:-mx-16">
+      <div className="relative flex justify-center px-6">
+        {/* eslint-disable-next-line @next/next/no-img-element -- dibujo fijo, sin optimizar a propósito */}
+        <img src="/pixel/restablecer.png" alt="" aria-hidden width={746} height={423} className="relative -mb-3 h-auto w-full max-w-[640px] select-none" />
+        {/* Vivian, a su tamaño real en pixeles, parada en el pasillo frente al altar */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- sprite a tamaño exacto para que se vea nítido */}
+        <img src="/pixel/yo.png" alt="" aria-hidden width={40} height={104} className="sprite absolute bottom-0 left-[38%] z-10 -mb-1" style={{ width: 40 }} />
       </div>
+      {/* Pasto y, encima, el cuadro de diálogo */}
+      <div aria-hidden className="h-44 border-t-4 border-olivo-300 bg-olivo-600">
+        <div className="h-3 bg-olivo-500" />
+      </div>
+      <figure className="absolute inset-x-6 bottom-5 flex gap-4 border-4 border-double border-piedra-50 bg-marca-900/95 p-2 shadow-[3px_3px_0_0_var(--color-piedra-950)] xl:inset-x-10">
+        <span className="shrink-0 border-2 border-piedra-50 bg-marca-800">
+          {/* eslint-disable-next-line @next/next/no-img-element -- retrato a tamaño exacto (x3) para que se vea nítido */}
+          <img src="/pixel/yo-retrato.png" alt="" aria-hidden width={108} height={108} className="sprite block" style={{ width: 108 }} />
+        </span>
+        <div className="relative flex-1 py-1 pr-6">
+          <figcaption className="font-titulo text-lg font-semibold text-dorado-300">Vivian:</figcaption>
+          <blockquote className="mt-1 pl-3 font-titulo text-xl font-medium text-white">Todo tiene solución.</blockquote>
+          <span aria-hidden className="absolute bottom-1 right-3 h-0 w-0 border-x-[7px] border-t-[8px] border-x-transparent border-t-piedra-50" />
+        </div>
+      </figure>
     </div>
   );
 }

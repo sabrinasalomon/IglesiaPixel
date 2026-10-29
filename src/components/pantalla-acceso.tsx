@@ -70,9 +70,11 @@ export function PantallaAcceso({
           </div>
         )}
         {/* Pasto en escalones, como el suelo de un nivel */}
-        <div aria-hidden className="relative -mx-12 h-14 border-t-4 border-olivo-300 bg-olivo-600 xl:-mx-16">
-          <div className="h-3 bg-olivo-500" />
-        </div>
+        {!escena && (
+          <div aria-hidden className="relative -mx-12 h-14 border-t-4 border-olivo-300 bg-olivo-600 xl:-mx-16">
+            <div className="h-3 bg-olivo-500" />
+          </div>
+        )}
       </section>
 
       <section className="flex items-center justify-center bg-papel p-6">
