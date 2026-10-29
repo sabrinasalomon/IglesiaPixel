@@ -155,6 +155,7 @@ export default function Reportes() {
             </>
           }
           dibujo={<Dibujo nombre="libro" />}
+          fondo="/pixel/fondo-reportes.jpg"
         />
         {(error || errorExportar) && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorExportar}</p>}
         <div className="mb-4">

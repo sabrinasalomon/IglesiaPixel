@@ -79,6 +79,7 @@ export default function Configuracion() {
         descripcion="Información institucional y de la sede activa"
         acciones={!soloLectura && <Boton variante="dorado" onClick={guardar}>Guardar cambios</Boton>}
         dibujo={<Dibujo nombre="vitral" />}
+        fondo="/pixel/fondo-configuracion.jpg"
       />
       {mensaje && (
         <p className={`mb-4 px-3 py-2 text-sm ${mensaje.ok ? "bg-olivo-50 text-olivo-700" : "bg-liston-50 text-liston-700"}`}>{mensaje.texto}</p>

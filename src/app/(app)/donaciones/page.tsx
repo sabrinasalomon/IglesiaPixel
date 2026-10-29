@@ -102,6 +102,7 @@ export default function Donaciones() {
           )
         }
         dibujo={<Dibujo nombre="ofrenda" />}
+        fondo="/pixel/fondo-donaciones.jpg"
       />
       {!puedeRegistrar && (
         <p className="mb-4 flex items-center gap-2 bg-dorado-50 px-3 py-2 text-sm text-dorado-800">

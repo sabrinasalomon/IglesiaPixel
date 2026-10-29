@@ -40,6 +40,7 @@ export default function Sedes() {
         descripcion="Cada sede tiene sus propios miembros, eventos, ministerios y finanzas"
         acciones={<Boton variante="dorado" onClick={() => abrir(null, { nombre: "", direccion: "", telefono: "", correo: "" })}><Plus size={16} /> Nueva sede</Boton>}
         dibujo={<Dibujo nombre="sedes" />}
+        fondo="/pixel/fondo-sedes.jpg"
       />
       {db.sedes.length === 0 && (
         <Tarjeta className="p-8 text-center text-sm text-piedra-600">Aún no hay sedes. Registra la primera para empezar.</Tarjeta>

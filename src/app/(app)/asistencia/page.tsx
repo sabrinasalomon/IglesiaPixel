@@ -108,6 +108,7 @@ export default function Asistencia() {
         titulo="Control de asistencia"
         descripcion="Selecciona el evento y marca a los presentes"
         dibujo={<Dibujo nombre="bancas" />}
+        fondo="/pixel/fondo-asistencia.jpg"
       />
       {error && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">

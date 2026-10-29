@@ -99,6 +99,7 @@ export function Encabezado({
   descripcion,
   acciones,
   dibujo,
+  fondo = "/pixel/fondo.jpg",
   children,
 }: {
   titulo: string;
@@ -106,12 +107,17 @@ export function Encabezado({
   acciones?: ReactNode;
   /** Con dibujo, el encabezado es un cielo nocturno con el dibujo a la derecha */
   dibujo?: ReactNode;
+  /** Imagen del lugar de la iglesia que va de fondo, fija */
+  fondo?: string;
   /** Contenido extra bajo la descripción, como contadores */
   children?: ReactNode;
 }) {
   if (dibujo) {
     return (
-      <section className="pixel relative mb-6 flex items-end justify-between gap-6 overflow-hidden bg-piedra-900 bg-[url(/pixel/fondo.jpg)] bg-cover bg-[center_8%] px-6 pt-6 text-white [image-rendering:pixelated] sm:px-8">
+      <section
+        className="pixel relative mb-6 flex items-end justify-between gap-6 overflow-hidden bg-piedra-900 bg-cover px-6 pt-6 text-white [image-rendering:pixelated] sm:px-8"
+        style={{ backgroundImage: `url(${fondo})`, backgroundPosition: fondo === "/pixel/fondo.jpg" ? "center 8%" : "center" }}
+      >
         {/* Sombra a la izquierda para que el texto se lea sobre el fondo */}
         <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-piedra-950/85 via-piedra-950/45 to-transparent" />
         <div className="relative pb-6">

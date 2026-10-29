@@ -66,6 +66,7 @@ export default function Comunicados() {
           )
         }
         dibujo={<Dibujo nombre="avisos" />}
+        fondo="/pixel/fondo-comunicados.jpg"
       />
       {(error || errorAccion) && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorAccion}</p>}
       <div className="space-y-3">

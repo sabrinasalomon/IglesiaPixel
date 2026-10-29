@@ -64,6 +64,7 @@ export default function Ministerios() {
         descripcion="Grupos de trabajo, sus coordinadores e integrantes"
         acciones={puedeCrear && <Boton variante="dorado" onClick={() => { setErrorAccion(""); setNuevo({ nombre: "", descripcion: "", coordinadorId: "" }); }}><Plus size={16} /> Nuevo ministerio</Boton>}
         dibujo={<Dibujo nombre="musicos" />}
+        fondo="/pixel/fondo-ministerios.jpg"
       />
       {(error || (errorAccion && !abierto && !nuevo)) && (
         <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorAccion}</p>

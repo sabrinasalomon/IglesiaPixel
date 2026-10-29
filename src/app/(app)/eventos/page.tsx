@@ -130,6 +130,7 @@ export default function Eventos() {
         descripcion="Cultos, reuniones y actividades de la sede"
         acciones={puedeEditar() && <Boton variante="dorado" onClick={() => abrirNuevo()}><Plus size={16} /> Nuevo evento</Boton>}
         dibujo={<Dibujo nombre="campanario" />}
+        fondo="/pixel/fondo-eventos.jpg"
       >
         <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
           <div>

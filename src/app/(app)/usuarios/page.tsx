@@ -62,6 +62,7 @@ export default function Usuarios() {
           )
         }
         dibujo={<Dibujo nombre="llaves" />}
+        fondo="/pixel/fondo-usuarios.jpg"
       />
       {aviso && <p className="mb-4 bg-olivo-50 px-3 py-2 text-sm text-olivo-700">{aviso}</p>}
       {error && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
