@@ -2,7 +2,7 @@
 
 import { Check, Search, X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, Etiqueta, Selector, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
+import { Boton, Campo, Dibujo, Encabezado, Entrada, Etiqueta, Selector, SinAcceso, Tabla, Tarjeta, Vacio, td, th } from "@/components/ui";
 import { fechaCorta } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
 import { useDatos } from "@/lib/store";
@@ -104,7 +104,11 @@ export default function Asistencia() {
 
   return (
     <>
-      <Encabezado titulo="Control de asistencia" descripcion="Selecciona el evento y marca a los presentes" />
+      <Encabezado
+        titulo="Control de asistencia"
+        descripcion="Selecciona el evento y marca a los presentes"
+        dibujo={<Dibujo nombre="bancas" />}
+      />
       {error && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <Tarjeta className="lg:col-span-3">

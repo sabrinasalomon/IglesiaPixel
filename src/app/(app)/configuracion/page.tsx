@@ -3,7 +3,7 @@
 import { Plus, Trash2, Upload } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Logo } from "@/components/logo";
-import { Boton, Campo, Encabezado, Entrada, Selector, SinAcceso, Tarjeta } from "@/components/ui";
+import { Boton, Campo, Dibujo, Encabezado, Entrada, Selector, SinAcceso, Tarjeta } from "@/components/ui";
 import { acceso } from "@/lib/permisos";
 import type { DatosSede } from "@/lib/repositorio/tipos";
 import { useDatos } from "@/lib/store";
@@ -77,7 +77,8 @@ export default function Configuracion() {
       <Encabezado
         titulo="Configuración"
         descripcion="Información institucional y de la sede activa"
-        acciones={!soloLectura && <Boton onClick={guardar}>Guardar cambios</Boton>}
+        acciones={!soloLectura && <Boton variante="dorado" onClick={guardar}>Guardar cambios</Boton>}
+        dibujo={<Dibujo nombre="vitral" />}
       />
       {mensaje && (
         <p className={`mb-4 px-3 py-2 text-sm ${mensaje.ok ? "bg-olivo-50 text-olivo-700" : "bg-liston-50 text-liston-700"}`}>{mensaje.texto}</p>

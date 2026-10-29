@@ -2,7 +2,7 @@
 
 import { FileSpreadsheet, FileText } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
+import { Boton, Campo, Dibujo, Encabezado, Entrada, Pestanas, SinAcceso, Tabla, Tarjeta, Vacio, td, th } from "@/components/ui";
 import { iso } from "@/lib/datos-ejemplo";
 import { aFecha, fechaCorta, mesCorto, mxn } from "@/lib/formato";
 import { reportesPermitidos } from "@/lib/permisos";
@@ -154,18 +154,11 @@ export default function Reportes() {
               </Boton>
             </>
           }
+          dibujo={<Dibujo nombre="libro" />}
         />
         {(error || errorExportar) && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorExportar}</p>}
-        <div className="mb-4 flex flex-wrap gap-2">
-          {permitidos.map((p) => (
-            <button
-              key={p}
-              onClick={() => setTipo(p)}
-              className={`rounded-full px-4 py-1.5 text-sm font-medium ${tipo === p ? "bg-marca-600 text-white" : "bg-white text-piedra-600 ring-1 ring-piedra-200 hover:bg-piedra-50"}`}
-            >
-              {NOMBRES[p]}
-            </button>
-          ))}
+        <div className="mb-4">
+          <Pestanas valor={tipo} alCambiar={setTipo} opciones={permitidos.map((p) => ({ valor: p, texto: NOMBRES[p] }))} />
         </div>
       </div>
 

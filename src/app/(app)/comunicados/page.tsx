@@ -2,7 +2,7 @@
 
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { AreaTexto, Boton, Campo, Encabezado, Entrada, Etiqueta, Liston, Modal, Selector, SinAcceso, Tarjeta, Vacio } from "@/components/ui";
+import { AreaTexto, Boton, Campo, Dibujo, Encabezado, Entrada, Etiqueta, Liston, Modal, Selector, SinAcceso, Tarjeta, Vacio } from "@/components/ui";
 import { fechaLarga } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
 import type { DatosAnuncio } from "@/lib/repositorio/tipos";
@@ -60,11 +60,12 @@ export default function Comunicados() {
         descripcion="Los miembros ven estos avisos al iniciar sesión"
         acciones={
           puedeEditar && (
-            <Boton onClick={() => abrir({ titulo: "", contenido: "", fechaPublicacion: hoy, importante: false, sedeId }, null)}>
+            <Boton variante="dorado" onClick={() => abrir({ titulo: "", contenido: "", fechaPublicacion: hoy, importante: false, sedeId }, null)}>
               <Plus size={16} /> Nuevo anuncio
             </Boton>
           )
         }
+        dibujo={<Dibujo nombre="avisos" />}
       />
       {(error || errorAccion) && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorAccion}</p>}
       <div className="space-y-3">

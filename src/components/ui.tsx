@@ -278,6 +278,26 @@ export function Papa({ alto = 131, className }: { alto?: number; className?: str
   );
 }
 
+// Dibujos de cada vista (generados en pixel art y recortados a 360 px por el
+// lado largo). Se muestran a la mitad para que los cuadritos queden parejos.
+const DIBUJOS = {
+  campanario: [117, 360],
+  bancas: [360, 208],
+  musicos: [360, 304],
+  avisos: [282, 360],
+  ofrenda: [341, 360],
+  libro: [360, 252],
+  sedes: [360, 301],
+  llaves: [297, 360],
+  vitral: [356, 360],
+} as const;
+
+export function Dibujo({ nombre, className }: { nombre: keyof typeof DIBUJOS; className?: string }) {
+  const [ancho, alto] = DIBUJOS[nombre];
+  // eslint-disable-next-line @next/next/no-img-element -- imagen fija y pequeña, sin optimizar a propósito
+  return <img src={`/pixel/${nombre}.png`} alt="" aria-hidden width={ancho / 2} height={alto / 2} className={unir("sprite", className)} />;
+}
+
 // Cuadrito con las iniciales; el color sale del nombre para que cada persona
 // conserve siempre el suyo.
 const COLORES_AVATAR = ["bg-marca-700", "bg-liston-600", "bg-olivo-500", "bg-dorado-500", "bg-marca-500", "bg-piedra-700"];

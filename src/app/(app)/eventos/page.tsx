@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { AreaTexto, Boton, Campo, Contador, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Sprite, Tarjeta } from "@/components/ui";
+import { AreaTexto, Boton, Campo, Contador, Dibujo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tarjeta } from "@/components/ui";
 import { TIPOS_EVENTO } from "@/lib/catalogos";
 import { iso } from "@/lib/datos-ejemplo";
 import { aFecha, fechaCorta, fechaLarga, MESES } from "@/lib/formato";
@@ -129,7 +129,7 @@ export default function Eventos() {
         titulo="Eventos"
         descripcion="Cultos, reuniones y actividades de la sede"
         acciones={puedeEditar() && <Boton variante="dorado" onClick={() => abrirNuevo()}><Plus size={16} /> Nuevo evento</Boton>}
-        dibujo={<Sprite nombre="cruz" ancho={110} />}
+        dibujo={<Dibujo nombre="campanario" />}
       >
         <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
           <div>

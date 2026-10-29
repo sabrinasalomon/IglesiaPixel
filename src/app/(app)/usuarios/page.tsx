@@ -2,7 +2,7 @@
 
 import { Pencil, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
+import { Boton, Campo, Dibujo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, Vacio, td, th } from "@/components/ui";
 import { nombreRol, ROLES } from "@/lib/catalogos";
 import { acceso } from "@/lib/permisos";
 import type { DatosInvitacion } from "@/lib/repositorio/tipos";
@@ -56,11 +56,12 @@ export default function Usuarios() {
         descripcion="Cuentas de acceso, su rol y su sede"
         acciones={
           puedeEditar && (
-            <Boton onClick={() => { setErrorForm(""); setNuevo({ nombre: "", correo: "", rol: "secretario", sedeId }); }}>
+            <Boton variante="dorado" onClick={() => { setErrorForm(""); setNuevo({ nombre: "", correo: "", rol: "secretario", sedeId }); }}>
               <Plus size={16} /> Invitar usuario
             </Boton>
           )
         }
+        dibujo={<Dibujo nombre="llaves" />}
       />
       {aviso && <p className="mb-4 bg-olivo-50 px-3 py-2 text-sm text-olivo-700">{aviso}</p>}
       {error && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}

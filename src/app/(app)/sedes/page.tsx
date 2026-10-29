@@ -2,7 +2,7 @@
 
 import { Building2, Mail, MapPin, Phone, Plus } from "lucide-react";
 import { useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, SinAcceso, Tarjeta } from "@/components/ui";
+import { Boton, Campo, Dibujo, Encabezado, Entrada, Etiqueta, Modal, SinAcceso, Tarjeta } from "@/components/ui";
 import { acceso } from "@/lib/permisos";
 import type { DatosSede } from "@/lib/repositorio/tipos";
 import { useDatos } from "@/lib/store";
@@ -38,7 +38,8 @@ export default function Sedes() {
       <Encabezado
         titulo="Sedes"
         descripcion="Cada sede tiene sus propios miembros, eventos, ministerios y finanzas"
-        acciones={<Boton onClick={() => abrir(null, { nombre: "", direccion: "", telefono: "", correo: "" })}><Plus size={16} /> Nueva sede</Boton>}
+        acciones={<Boton variante="dorado" onClick={() => abrir(null, { nombre: "", direccion: "", telefono: "", correo: "" })}><Plus size={16} /> Nueva sede</Boton>}
+        dibujo={<Dibujo nombre="sedes" />}
       />
       {db.sedes.length === 0 && (
         <Tarjeta className="p-8 text-center text-sm text-piedra-600">Aún no hay sedes. Registra la primera para empezar.</Tarjeta>

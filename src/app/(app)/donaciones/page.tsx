@@ -2,7 +2,7 @@
 
 import { Lock, Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Boton, Campo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
+import { Boton, Campo, Dibujo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, Vacio, td, th } from "@/components/ui";
 import { CONCEPTOS, METODOS } from "@/lib/catalogos";
 import { fechaCorta, mesCorto, mxn } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
@@ -96,11 +96,12 @@ export default function Donaciones() {
         descripcion="Información financiera restringida a administración, pastor y tesorería"
         acciones={
           puedeRegistrar && (
-            <Boton onClick={() => { setErrorForm(""); setForm({ fecha: hoy, monto: "", concepto: "Diezmo", metodo: "Efectivo", miembroId: "", anonima: false }); }}>
+            <Boton variante="dorado" onClick={() => { setErrorForm(""); setForm({ fecha: hoy, monto: "", concepto: "Diezmo", metodo: "Efectivo", miembroId: "", anonima: false }); }}>
               <Plus size={16} /> Registrar aportación
             </Boton>
           )
         }
+        dibujo={<Dibujo nombre="ofrenda" />}
       />
       {!puedeRegistrar && (
         <p className="mb-4 flex items-center gap-2 bg-dorado-50 px-3 py-2 text-sm text-dorado-800">
