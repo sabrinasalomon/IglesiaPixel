@@ -72,7 +72,7 @@ export default function Miembros() {
       <Encabezado
         titulo="Miembros"
         descripcion={`La congregación de ${sede?.nombre ?? "tu sede"}`}
-        acciones={puedeEditar && <Boton variante="dorado" onClick={() => abrir("nuevo")}><Plus size={16} /> Nuevo miembro</Boton>}
+        acciones={puedeEditar && <Boton onClick={() => abrir("nuevo")}><Plus size={16} /> Nuevo miembro</Boton>}
         dibujo={<Papa />}
       >
         <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">

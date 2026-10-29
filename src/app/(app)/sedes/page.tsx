@@ -38,7 +38,7 @@ export default function Sedes() {
       <Encabezado
         titulo="Sedes"
         descripcion="Cada sede tiene sus propios miembros, eventos, ministerios y finanzas"
-        acciones={<Boton variante="dorado" onClick={() => abrir(null, { nombre: "", direccion: "", telefono: "", correo: "" })}><Plus size={16} /> Nueva sede</Boton>}
+        acciones={<Boton onClick={() => abrir(null, { nombre: "", direccion: "", telefono: "", correo: "" })}><Plus size={16} /> Nueva sede</Boton>}
         dibujo={<Dibujo nombre="sedes" />}
         fondo="/pixel/fondo-sedes.jpg"
       >
@@ -92,7 +92,7 @@ export default function Sedes() {
                 <Boton variante="secundario" disabled={s.id === sedeId} onClick={() => cambiarSede(s.id)}>
                   {s.id === sedeId ? "Sede activa" : "Trabajar en esta sede"}
                 </Boton>
-                <Boton variante="fantasma" onClick={() => abrir(s.id, { nombre: s.nombre, direccion: s.direccion, telefono: s.telefono, correo: s.correo })}>Editar</Boton>
+                <Boton variante="secundario" onClick={() => abrir(s.id, { nombre: s.nombre, direccion: s.direccion, telefono: s.telefono, correo: s.correo })}>Editar</Boton>
               </div>
             </div>
           </Tarjeta>

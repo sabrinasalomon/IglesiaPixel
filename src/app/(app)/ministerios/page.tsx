@@ -62,7 +62,7 @@ export default function Ministerios() {
       <Encabezado
         titulo="Ministerios"
         descripcion="Grupos de trabajo, sus coordinadores e integrantes"
-        acciones={puedeCrear && <Boton variante="dorado" onClick={() => { setErrorAccion(""); setNuevo({ nombre: "", descripcion: "", coordinadorId: "" }); }}><Plus size={16} /> Nuevo ministerio</Boton>}
+        acciones={puedeCrear && <Boton onClick={() => { setErrorAccion(""); setNuevo({ nombre: "", descripcion: "", coordinadorId: "" }); }}><Plus size={16} /> Nuevo ministerio</Boton>}
         dibujo={<Sprite nombre="biblia" ancho={210} />}
         fondo="/pixel/fondo-ministerios.jpg"
       >

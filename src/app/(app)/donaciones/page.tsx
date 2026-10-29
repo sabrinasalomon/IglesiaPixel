@@ -96,7 +96,7 @@ export default function Donaciones() {
         descripcion="Información financiera restringida a administración, pastor y tesorería"
         acciones={
           puedeRegistrar && (
-            <Boton variante="dorado" onClick={() => { setErrorForm(""); setForm({ fecha: hoy, monto: "", concepto: "Diezmo", metodo: "Efectivo", miembroId: "", anonima: false }); }}>
+            <Boton onClick={() => { setErrorForm(""); setForm({ fecha: hoy, monto: "", concepto: "Diezmo", metodo: "Efectivo", miembroId: "", anonima: false }); }}>
               <Plus size={16} /> Registrar aportación
             </Boton>
           )

@@ -60,7 +60,7 @@ export default function Comunicados() {
         descripcion="Los miembros ven estos avisos al iniciar sesión"
         acciones={
           puedeEditar && (
-            <Boton variante="dorado" onClick={() => abrir({ titulo: "", contenido: "", fechaPublicacion: hoy, importante: false, sedeId }, null)}>
+            <Boton onClick={() => abrir({ titulo: "", contenido: "", fechaPublicacion: hoy, importante: false, sedeId }, null)}>
               <Plus size={16} /> Nuevo anuncio
             </Boton>
           )

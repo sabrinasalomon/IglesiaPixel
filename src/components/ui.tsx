@@ -12,14 +12,14 @@ export function Tarjeta({ className, ...p }: ComponentProps<"div">) {
   return <div className={unir("pixel-suave bg-piedra-50", className)} {...p} />;
 }
 
-type Variante = "primario" | "secundario" | "peligro" | "fantasma" | "dorado";
+// Tres tratamientos en toda la app: primario dorado para crear, guardar o
+// confirmar; secundario claro con borde fino para lo demás; y deshabilitado gris.
+type Variante = "primario" | "secundario" | "peligro" | "fantasma";
 const VARIANTES: Record<Variante, string> = {
-  primario: "border-2 border-piedra-900 bg-marca-700 text-white shadow-[3px_3px_0_0_var(--color-piedra-900)] hover:bg-marca-600",
-  secundario: "border-2 border-piedra-900 bg-piedra-50 text-piedra-900 shadow-[3px_3px_0_0_var(--color-piedra-900)] hover:bg-dorado-100",
-  peligro: "border-2 border-liston-700 bg-piedra-50 text-liston-700 shadow-[3px_3px_0_0_var(--color-liston-700)] hover:bg-liston-50",
+  primario: "border-2 border-piedra-900 bg-dorado-400 text-piedra-950 shadow-[3px_3px_0_0_var(--color-piedra-900)] hover:bg-dorado-300",
+  secundario: "border border-piedra-400 bg-piedra-50 text-piedra-800 hover:border-piedra-700 hover:bg-white",
+  peligro: "border border-liston-600 bg-piedra-50 text-liston-700 hover:bg-liston-50",
   fantasma: "text-piedra-600 hover:bg-piedra-200/60 hover:text-piedra-900",
-  // Para fondos oscuros, como el cielo de los encabezados
-  dorado: "border-2 border-piedra-950 bg-dorado-400 text-piedra-950 shadow-[3px_3px_0_0_var(--color-piedra-950)] hover:bg-dorado-300",
 };
 
 export function Boton({
@@ -31,7 +31,7 @@ export function Boton({
     <button
       className={unir(
         // Al presionar, el botón baja hasta su sombra, como una tecla
-        "inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-bold transition-[background-color,transform,box-shadow] duration-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dorado-400 focus-visible:ring-offset-2 focus-visible:ring-offset-piedra-50 enabled:active:translate-x-[3px] enabled:active:translate-y-[3px] enabled:active:shadow-none disabled:cursor-not-allowed disabled:opacity-50",
+        "inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-bold transition-[background-color,transform,box-shadow] duration-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dorado-400 focus-visible:ring-offset-2 focus-visible:ring-offset-piedra-50 enabled:active:translate-x-[3px] enabled:active:translate-y-[3px] enabled:active:shadow-none disabled:cursor-not-allowed disabled:border-piedra-300! disabled:bg-piedra-200! disabled:text-piedra-500! disabled:shadow-none!",
         VARIANTES[variante],
         className
       )}

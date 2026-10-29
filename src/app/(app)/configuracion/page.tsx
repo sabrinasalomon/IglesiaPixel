@@ -77,7 +77,7 @@ export default function Configuracion() {
       <Encabezado
         titulo="Configuración"
         descripcion="Información institucional y de la sede activa"
-        acciones={!soloLectura && <Boton variante="dorado" onClick={guardar}>Guardar cambios</Boton>}
+        acciones={!soloLectura && <Boton onClick={guardar}>Guardar cambios</Boton>}
         dibujo={<Dibujo nombre="vitral" />}
         fondo="/pixel/fondo-configuracion.jpg"
       />

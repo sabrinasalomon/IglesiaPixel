@@ -56,7 +56,7 @@ export default function Usuarios() {
         descripcion="Cuentas de acceso, su rol y su sede"
         acciones={
           puedeEditar && (
-            <Boton variante="dorado" onClick={() => { setErrorForm(""); setNuevo({ nombre: "", correo: "", rol: "secretario", sedeId }); }}>
+            <Boton onClick={() => { setErrorForm(""); setNuevo({ nombre: "", correo: "", rol: "secretario", sedeId }); }}>
               <Plus size={16} /> Invitar usuario
             </Boton>
           )

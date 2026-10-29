@@ -128,7 +128,7 @@ export default function Eventos() {
       <Encabezado
         titulo="Eventos"
         descripcion="Cultos, reuniones y actividades de la sede"
-        acciones={puedeEditar() && <Boton variante="dorado" onClick={() => abrirNuevo()}><Plus size={16} /> Nuevo evento</Boton>}
+        acciones={puedeEditar() && <Boton onClick={() => abrirNuevo()}><Plus size={16} /> Nuevo evento</Boton>}
         dibujo={<Dibujo nombre="campanario" />}
         fondo="/pixel/fondo-eventos.jpg"
       >
@@ -155,9 +155,9 @@ export default function Eventos() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-piedra-900 bg-marca-900 p-4 text-white">
           <h2 key={mes} className="animate-subir font-titulo text-2xl font-semibold capitalize">{MESES[m - 1]} {a}</h2>
           <div className="flex gap-2">
-            <Boton variante="dorado" onClick={() => moverMes(-1)} aria-label="Mes anterior"><ChevronLeft size={16} /></Boton>
-            <Boton variante="dorado" onClick={() => setMes(hoy.slice(0, 7))}>Hoy</Boton>
-            <Boton variante="dorado" onClick={() => moverMes(1)} aria-label="Mes siguiente"><ChevronRight size={16} /></Boton>
+            <Boton onClick={() => moverMes(-1)} aria-label="Mes anterior"><ChevronLeft size={16} /></Boton>
+            <Boton onClick={() => setMes(hoy.slice(0, 7))}>Hoy</Boton>
+            <Boton onClick={() => moverMes(1)} aria-label="Mes siguiente"><ChevronRight size={16} /></Boton>
           </div>
         </div>
         <div className="grid grid-cols-7 border-b-2 border-piedra-800 bg-piedra-100 text-center font-titulo text-[13px] font-medium text-piedra-700">

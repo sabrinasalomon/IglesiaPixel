@@ -148,10 +148,10 @@ export default function Reportes() {
           descripcion={`Información de ${sede?.nombre ?? ""}`}
           acciones={
             <>
-              <Boton variante="dorado" disabled={exportando || cargando} onClick={() => exportar("excel")}>
+              <Boton disabled={exportando || cargando} onClick={() => exportar("excel")}>
                 <FileSpreadsheet size={16} /> Exportar a Excel
               </Boton>
-              <Boton variante="dorado" disabled={exportando || cargando} onClick={() => exportar("pdf")}>
+              <Boton disabled={exportando || cargando} onClick={() => exportar("pdf")}>
                 <FileText size={16} /> Exportar a PDF
               </Boton>
             </>
