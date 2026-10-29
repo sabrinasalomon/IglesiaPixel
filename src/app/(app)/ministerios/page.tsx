@@ -2,7 +2,7 @@
 
 import { CalendarDays, Plus, UserMinus } from "lucide-react";
 import { useCallback, useState } from "react";
-import { AreaTexto, Avatar, Boton, Campo, Contador, Dibujo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tarjeta } from "@/components/ui";
+import { AreaTexto, Avatar, Boton, Campo, Contador, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Sprite, Tarjeta } from "@/components/ui";
 import { fechaCorta } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
 import { useDatos } from "@/lib/store";
@@ -63,7 +63,7 @@ export default function Ministerios() {
         titulo="Ministerios"
         descripcion="Grupos de trabajo, sus coordinadores e integrantes"
         acciones={puedeCrear && <Boton variante="dorado" onClick={() => { setErrorAccion(""); setNuevo({ nombre: "", descripcion: "", coordinadorId: "" }); }}><Plus size={16} /> Nuevo ministerio</Boton>}
-        dibujo={<Dibujo nombre="musicos" />}
+        dibujo={<Sprite nombre="biblia" ancho={210} />}
         fondo="/pixel/fondo-ministerios.jpg"
       >
         <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
