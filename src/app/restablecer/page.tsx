@@ -147,10 +147,9 @@ function Escena() {
           {/* eslint-disable-next-line @next/next/no-img-element -- retrato a tamaño exacto (x3) para que se vea nítido */}
           <img src="/pixel/yo-retrato.png" alt="" aria-hidden width={108} height={108} className="sprite block" style={{ width: 108 }} />
         </span>
-        <div className="relative flex-1 py-1 pr-6">
+        <div className="flex-1 py-1 pr-4">
           <figcaption className="font-titulo text-lg font-semibold text-dorado-300">Vivian:</figcaption>
           <blockquote className="mt-1 pl-3 font-titulo text-xl font-medium text-white">Todo tiene solución.</blockquote>
-          <span aria-hidden className="absolute bottom-1 right-3 h-0 w-0 border-x-[7px] border-t-[8px] border-x-transparent border-t-piedra-50" />
         </div>
       </figure>
     </div>
