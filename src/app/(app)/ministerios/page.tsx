@@ -2,7 +2,7 @@
 
 import { CalendarDays, Plus, UserMinus } from "lucide-react";
 import { useCallback, useState } from "react";
-import { AreaTexto, Avatar, Boton, Campo, Contador, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Sprite, Tarjeta } from "@/components/ui";
+import { AreaTexto, Avatar, Boton, Campo, Contador, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Sprite, Tarjeta, elevar } from "@/components/ui";
 import { fechaCorta } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
 import { useDatos } from "@/lib/store";
@@ -90,7 +90,7 @@ export default function Ministerios() {
           const proximos = eventos.filter((e) => e.ministerioId === m.id && e.fecha >= hoy && !e.cancelado);
           const mio = misMinisterios.some((x) => x.id === m.id);
           return (
-            <Tarjeta key={m.id} className="flex flex-col transition-transform hover:-translate-y-1">
+            <Tarjeta key={m.id} className={`flex flex-col ${elevar}`}>
               {/* Cabecera oscura con el nombre, como la tarjeta de un objeto en un juego */}
               <div className="flex items-start justify-between gap-2 border-b-2 border-piedra-900 bg-marca-900 px-5 py-3 text-white">
                 <h2 className="font-titulo text-xl font-semibold leading-tight">{m.nombre}</h2>

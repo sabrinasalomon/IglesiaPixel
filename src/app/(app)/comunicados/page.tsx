@@ -2,7 +2,7 @@
 
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
-import { AreaTexto, Boton, Campo, Contador, Dibujo, Encabezado, Entrada, Etiqueta, Liston, Modal, Selector, SinAcceso, Tarjeta, Vacio } from "@/components/ui";
+import { AreaTexto, Boton, Campo, Contador, Dibujo, Encabezado, Entrada, Etiqueta, Liston, Modal, Selector, SinAcceso, Tarjeta, Vacio, elevar } from "@/components/ui";
 import { aFecha, fechaLarga, MESES } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
 import type { DatosAnuncio } from "@/lib/repositorio/tipos";
@@ -89,7 +89,7 @@ export default function Comunicados() {
         {lista.map((a) => {
           const fecha = aFecha(a.fechaPublicacion);
           return (
-            <Tarjeta key={a.id} className={`relative flex gap-4 p-5 pt-6 ${a.importante ? "border-liston-700!" : ""}`}>
+            <Tarjeta key={a.id} className={`relative flex gap-4 p-5 pt-6 ${elevar} ${a.importante ? "border-liston-700!" : ""}`}>
               <span aria-hidden className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 border-2 border-piedra-900 bg-liston-600" />
               {a.importante && <Liston className="left-1.5 h-10" />}
               <div className="flex w-14 shrink-0 flex-col items-center self-start border-2 border-piedra-900 bg-piedra-100 text-center">

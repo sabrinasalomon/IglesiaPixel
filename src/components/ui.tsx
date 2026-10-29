@@ -8,6 +8,9 @@ import { useEffect, useRef, useState, type ComponentProps, type ReactNode } from
 
 const unir = (...c: (string | false | undefined)[]) => c.filter(Boolean).join(" ");
 
+// Elevación suave al pasar el cursor, para tarjetas sueltas (no para tablas)
+export const elevar = "transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-[3px] hover:shadow-[3px_6px_0_0_rgb(36_28_21/0.35)]";
+
 export function Tarjeta({ className, ...p }: ComponentProps<"div">) {
   return <div className={unir("pixel-suave bg-piedra-50", className)} {...p} />;
 }

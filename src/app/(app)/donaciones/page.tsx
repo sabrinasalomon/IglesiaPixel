@@ -267,7 +267,7 @@ function Bloques({ valor, total, etiqueta }: { valor: number; total: number; eti
       style={{ gridTemplateColumns: `repeat(${bloques}, 1fr)` }}
     >
       {Array.from({ length: bloques }, (_, i) => (
-        <span key={i} className={i < llenos ? "bg-dorado-600" : "bg-piedra-50"} />
+        <span key={i} className={i < llenos ? "animate-bloque bg-dorado-600" : "bg-piedra-50"} style={{ animationDelay: `${150 + i * 45}ms` }} />
       ))}
     </div>
   );
