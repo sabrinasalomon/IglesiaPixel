@@ -119,7 +119,7 @@ function Fuerza({ contrasena }: { contrasena: string }) {
   return (
     <div className="-mt-1 flex items-center gap-3">
       <div className="grid h-3 flex-1 grid-cols-4 gap-0.5 border border-piedra-900 bg-piedra-200 p-px" aria-hidden>
-        {[1, 2, 3, 4].map((i) => <span key={i} className={i <= Math.max(puntos, 1) ? nivel.color : "bg-piedra-50"} />)}
+        {[1, 2, 3, 4].map((i) => <span key={i} className={`transition-colors duration-300 ${i <= Math.max(puntos, 1) ? nivel.color : "bg-piedra-50"}`} style={{ transitionDelay: `${i * 60}ms` }} />)}
       </div>
       <span className="w-20 text-right text-xs font-semibold text-piedra-600">{nivel.texto}</span>
     </div>

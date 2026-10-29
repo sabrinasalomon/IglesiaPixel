@@ -229,7 +229,7 @@ function Porcentaje({ texto }: { texto: string }) {
   return (
     <span className="inline-flex items-center gap-2">
       <span className="grid h-3 w-20 grid-cols-10 gap-px border-2 border-piedra-900 bg-piedra-200 p-px" aria-hidden>
-        {Array.from({ length: 10 }, (_, i) => <span key={i} className={i < llenos ? "bg-olivo-600" : "bg-piedra-50"} />)}
+        {Array.from({ length: 10 }, (_, i) => <span key={i} className={i < llenos ? "animate-bloque bg-olivo-600" : "bg-piedra-50"} style={{ animationDelay: `${150 + i * 45}ms` }} />)}
       </span>
       {texto}
     </span>

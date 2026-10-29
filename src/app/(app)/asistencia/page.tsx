@@ -243,7 +243,7 @@ function Barra({ valor, total, chica = false }: { valor: number; total: number; 
       style={{ gridTemplateColumns: `repeat(${bloques}, 1fr)` }}
     >
       {Array.from({ length: bloques }, (_, i) => (
-        <span key={i} className={`transition-colors duration-300 ${i < llenos ? "bg-olivo-600" : "bg-piedra-50"}`} style={{ transitionDelay: `${i * 15}ms` }} />
+        <span key={i} className={`transition-colors duration-300 ${i < llenos ? "animate-bloque bg-olivo-600" : "bg-piedra-50"}`} style={{ transitionDelay: `${i * 15}ms`, animationDelay: `${150 + i * 45}ms` }} />
       ))}
     </div>
   );

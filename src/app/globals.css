@@ -71,6 +71,7 @@
   --animate-subir: subir 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-caminar: caminar 2.6s linear forwards;
   --animate-paso: paso 0.32s steps(1) infinite;
+  --animate-bloque: bloque 260ms steps(2, jump-none) both;
 
   @keyframes aparecer {
     from { opacity: 0; }
@@ -113,6 +114,10 @@
   @keyframes paso {
     0%, 100% { transform: translateY(0) rotate(-3deg); }
     50% { transform: translateY(-4px) rotate(3deg); }
+  }
+  /* Las barras se llenan bloque por bloque: cada bloque parte vacío */
+  @keyframes bloque {
+    from { background-color: var(--color-piedra-50); }
   }
   /* Entrada de cada bloque de la página, uno tras otro */
   @keyframes subir {
