@@ -149,9 +149,35 @@ function Escena() {
         </span>
         <div className="flex-1 py-1 pr-4">
           <figcaption className="font-titulo text-lg font-semibold text-dorado-300">Vivian:</figcaption>
-          <blockquote className="mt-1 pl-3 font-titulo text-xl font-medium text-white">Todo tiene solución.</blockquote>
+          <blockquote className="mt-1 pl-3 font-titulo text-xl font-medium text-white"><Escribir texto="Todo tiene solución." /></blockquote>
         </div>
       </figure>
     </div>
+  );
+}
+
+// El texto aparece letra por letra, una sola vez, como en los diálogos de los
+// videojuegos. Los lectores de pantalla reciben la frase completa desde el inicio.
+function Escribir({ texto }: { texto: string }) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return setN(texto.length);
+    let i = 0;
+    let reloj: ReturnType<typeof setInterval>;
+    const espera = setTimeout(() => {
+      reloj = setInterval(() => {
+        i++;
+        setN(i);
+        if (i >= texto.length) clearInterval(reloj);
+      }, 60);
+    }, 700);
+    return () => { clearTimeout(espera); clearInterval(reloj); };
+  }, [texto]);
+  return (
+    <>
+      <span className="sr-only">{texto}</span>
+      {/* Lo que falta se escribe invisible para que el cuadro no cambie de tamaño */}
+      <span aria-hidden>{texto.slice(0, n)}<span className="invisible">{texto.slice(n)}</span></span>
+    </>
   );
 }
