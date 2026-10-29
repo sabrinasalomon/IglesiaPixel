@@ -151,13 +151,13 @@ export default function LayoutApp({ children }: { children: React.ReactNode }) {
                       <Link
                         href={e.href}
                         aria-current={activo ? "page" : undefined}
-                        className={`ml-7 mr-3 flex items-center gap-3 border-2 px-3 py-2 text-[15px] transition-[background-color,transform] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dorado-400 ${
+                        className={`group ml-7 mr-3 flex items-center gap-3 border-2 px-3 py-2 text-[15px] transition-[background-color,color,border-color,box-shadow,transform] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dorado-400 ${
                           activo
                             ? "border-piedra-900 bg-dorado-300 font-bold text-piedra-950 shadow-[3px_3px_0_0_var(--color-piedra-900)]"
                             : "border-transparent text-piedra-700 hover:translate-x-1 hover:bg-piedra-200/70 hover:text-piedra-950"
                         }`}
                       >
-                        <span className={activo ? "text-piedra-950" : "text-piedra-500"}>{e.icono}</span>
+                        <span className={`transition-colors duration-200 ${activo ? "text-piedra-950" : "text-piedra-500 group-hover:text-piedra-900"}`}>{e.icono}</span>
                         {e.texto}
                       </Link>
                     </li>

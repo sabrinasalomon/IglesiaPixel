@@ -59,7 +59,7 @@ export default function Sedes() {
       )}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {db.sedes.map((s) => (
-          <Tarjeta key={s.id} className={`flex flex-col transition-transform hover:-translate-y-1 ${s.id === sedeId ? "border-dorado-600!" : ""}`}>
+          <Tarjeta key={s.id} className={`flex flex-col transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-[3px] hover:shadow-[3px_6px_0_0_rgb(36_28_21/0.35)] ${s.id === sedeId ? "border-dorado-600!" : ""}`}>
             {/* Cabecera oscura con la iglesia, como en Ministerios */}
             <div className="flex items-center gap-3 border-b-2 border-piedra-900 bg-marca-900 px-5 py-3 text-white">
               <Sprite nombre="iglesia" ancho={60} />
