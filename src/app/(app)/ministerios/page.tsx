@@ -1,8 +1,8 @@
 "use client";
 
-import { Plus, UserMinus, UsersRound } from "lucide-react";
+import { CalendarDays, Plus, UserMinus } from "lucide-react";
 import { useCallback, useState } from "react";
-import { AreaTexto, Boton, Campo, Dibujo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tarjeta } from "@/components/ui";
+import { AreaTexto, Avatar, Boton, Campo, Contador, Dibujo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tarjeta } from "@/components/ui";
 import { fechaCorta } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
 import { useDatos } from "@/lib/store";
@@ -65,7 +65,20 @@ export default function Ministerios() {
         acciones={puedeCrear && <Boton variante="dorado" onClick={() => { setErrorAccion(""); setNuevo({ nombre: "", descripcion: "", coordinadorId: "" }); }}><Plus size={16} /> Nuevo ministerio</Boton>}
         dibujo={<Dibujo nombre="musicos" />}
         fondo="/pixel/fondo-ministerios.jpg"
-      />
+      >
+        <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+          {[
+            ["Ministerios", ministerios.length],
+            ["Personas sirviendo", new Set(ministerios.flatMap((m) => m.integrantes)).size],
+            ["Actividades próximas", eventos.filter((e) => e.ministerioId && e.fecha >= hoy && !e.cancelado).length],
+          ].map(([texto, valor]) => (
+            <div key={texto}>
+              <dt className="text-xs font-bold uppercase tracking-wider text-dorado-300">{texto}</dt>
+              <dd className="font-titulo text-3xl font-semibold"><Contador valor={valor as number} /></dd>
+            </div>
+          ))}
+        </dl>
+      </Encabezado>
       {(error || (errorAccion && !abierto && !nuevo)) && (
         <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error || errorAccion}</p>
       )}
@@ -77,24 +90,41 @@ export default function Ministerios() {
           const proximos = eventos.filter((e) => e.ministerioId === m.id && e.fecha >= hoy && !e.cancelado);
           const mio = misMinisterios.some((x) => x.id === m.id);
           return (
-            <Tarjeta key={m.id} className="flex flex-col p-5">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-3">
-                  <span className=" bg-marca-50 p-2 text-marca-700 ring-1 ring-inset ring-marca-600/15"><UsersRound size={18} /></span>
-                  <h2 className="font-semibold">{m.nombre}</h2>
-                </div>
-                {mio && <Etiqueta tono="marca">Tu ministerio</Etiqueta>}
+            <Tarjeta key={m.id} className="flex flex-col transition-transform hover:-translate-y-1">
+              {/* Cabecera oscura con el nombre, como la tarjeta de un objeto en un juego */}
+              <div className="flex items-start justify-between gap-2 border-b-2 border-piedra-900 bg-marca-900 px-5 py-3 text-white">
+                <h2 className="font-titulo text-xl font-semibold leading-tight">{m.nombre}</h2>
+                {mio && <span className="shrink-0 bg-dorado-300 px-2 py-0.5 text-xs font-bold text-piedra-950">Tu ministerio</span>}
               </div>
-              <p className="mt-3 text-sm text-piedra-600">{m.descripcion}</p>
-              <dl className="mt-4 space-y-1 text-sm">
-                <div className="flex justify-between"><dt className="text-piedra-500">Coordinador</dt><dd className="font-medium">{nombre(m.coordinadorId)}</dd></div>
-                <div className="flex justify-between"><dt className="text-piedra-500">Integrantes</dt><dd className="font-medium">{m.integrantes.length}</dd></div>
-                <div className="flex justify-between">
-                  <dt className="text-piedra-500">Próxima actividad</dt>
-                  <dd className="font-medium">{proximos[0] ? fechaCorta(proximos[0].fecha) : "Ninguna"}</dd>
+              <div className="flex flex-1 flex-col p-5">
+                <p className="text-sm text-piedra-600">{m.descripcion}</p>
+                <div className="mt-4 flex items-center gap-3 text-sm">
+                  <Avatar nombre={nombre(m.coordinadorId)} />
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-piedra-500">Coordina</p>
+                    <p className="font-semibold text-piedra-900">{nombre(m.coordinadorId)}</p>
+                  </div>
                 </div>
-              </dl>
-              <Boton variante="secundario" className="mt-4" onClick={() => { setErrorAccion(""); setAbiertoId(m.id); }}>Ver integrantes</Boton>
+                <div className="mt-4 flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    {m.integrantes.slice(0, 5).map((id) => <Avatar key={id} nombre={nombre(id)} />)}
+                  </div>
+                  <span className="text-sm text-piedra-600">
+                    {m.integrantes.length} {m.integrantes.length === 1 ? "integrante" : "integrantes"}
+                  </span>
+                </div>
+                <div className="mt-4 flex items-center gap-2 border-2 border-piedra-200 bg-piedra-100 px-3 py-2 text-sm">
+                  <CalendarDays size={16} className="shrink-0 text-piedra-500" />
+                  {proximos[0] ? (
+                    <span className="truncate"><strong>{fechaCorta(proximos[0].fecha)}</strong> · {proximos[0].titulo}</span>
+                  ) : (
+                    <span className="text-piedra-500">Sin actividades próximas</span>
+                  )}
+                </div>
+                <div className="mt-auto pt-4">
+                  <Boton variante="secundario" className="w-full" onClick={() => { setErrorAccion(""); setAbiertoId(m.id); }}>Ver integrantes</Boton>
+                </div>
+              </div>
             </Tarjeta>
           );
         })}
@@ -132,10 +162,11 @@ export default function Ministerios() {
                 </Boton>
               </div>
             )}
-            <ul className="divide-y divide-piedra-100 border border-piedra-200">
+            <ul className="divide-y divide-piedra-200 border-2 border-piedra-300">
               {abierto.integrantes.map((id) => (
                 <li key={id} className="flex items-center justify-between px-3 py-2 text-sm">
-                  <span>
+                  <span className="flex items-center gap-3">
+                    <Avatar nombre={nombre(id)} />
                     {nombre(id)} {id === abierto.coordinadorId && <Etiqueta tono="marca">Coordinador</Etiqueta>}
                   </span>
                   {puedeEditar(abierto) && id !== abierto.coordinadorId && (
@@ -153,7 +184,7 @@ export default function Ministerios() {
             </ul>
             {errorAccion && <p className="text-sm text-liston-600">{errorAccion}</p>}
             <div>
-              <h3 className="mb-2 text-sm font-semibold">Actividades programadas</h3>
+              <h3 className="mb-2 font-titulo text-base font-semibold">Actividades programadas</h3>
               <ul className="space-y-1 text-sm text-piedra-600">
                 {eventos
                   .filter((e) => e.ministerioId === abierto.id && e.fecha >= hoy && !e.cancelado)
