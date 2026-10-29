@@ -3,7 +3,7 @@
 import { Plus, Trash2, Upload } from "lucide-react";
 import { useCallback, useRef, useState } from "react";
 import { Logo } from "@/components/logo";
-import { Boton, Campo, Dibujo, Encabezado, Entrada, Selector, SinAcceso, Tarjeta } from "@/components/ui";
+import { Boton, Campo, Dibujo, Encabezado, Entrada, Selector, SinAcceso, Tarjeta, elevar } from "@/components/ui";
 import { acceso } from "@/lib/permisos";
 import type { DatosSede } from "@/lib/repositorio/tipos";
 import { useDatos } from "@/lib/store";
@@ -116,7 +116,7 @@ export default function Configuracion() {
             {[...horarios]
               .sort((a, b) => DIAS.indexOf(a.dia) - DIAS.indexOf(b.dia) || a.hora.localeCompare(b.hora))
               .map((h) => (
-                <li key={h.id} className="flex items-center gap-3 border border-piedra-300 bg-white p-2 text-sm">
+                <li key={h.id} className={`flex items-center gap-3 border border-piedra-300 bg-white p-2 text-sm ${elevar}`}>
                   <span className="flex w-14 shrink-0 flex-col items-center border-2 border-piedra-900 bg-marca-900 py-1 text-white">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-dorado-300">{h.dia.slice(0, 3)}</span>
                     <span className="font-titulo text-base font-semibold leading-tight">{h.hora}</span>

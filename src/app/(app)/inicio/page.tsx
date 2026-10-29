@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { Semana } from "@/components/semana";
-import { Dibujo, Encabezado, Etiqueta, Liston, Tarjeta } from "@/components/ui";
+import { Dibujo, Encabezado, Etiqueta, Liston, Tarjeta, elevar } from "@/components/ui";
 import { aFecha, fechaLarga, MESES } from "@/lib/formato";
 import { useDatos } from "@/lib/store";
 import type { Anuncio, Evento, Horario } from "@/lib/types";
@@ -48,7 +48,7 @@ export default function Inicio() {
           {avisos.map((a) => {
             const fecha = aFecha(a.fechaPublicacion);
             return (
-              <Tarjeta key={a.id} className={`relative flex gap-4 p-5 pt-6 ${a.importante ? "border-liston-700!" : ""}`}>
+              <Tarjeta key={a.id} className={`relative flex gap-4 p-5 pt-6 ${elevar} ${a.importante ? "border-liston-700!" : ""}`}>
                 <span aria-hidden className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 border-2 border-piedra-900 bg-liston-600" />
                 {a.importante && <Liston className="left-1.5 h-10" />}
                 <div className="flex w-14 shrink-0 flex-col items-center self-start border border-piedra-900 bg-piedra-100 text-center">
@@ -73,7 +73,7 @@ export default function Inicio() {
             {[...horarios]
               .sort((a, b) => DIAS.indexOf(a.dia) - DIAS.indexOf(b.dia) || a.hora.localeCompare(b.hora))
               .map((h) => (
-                <li key={h.id} className="pixel-suave flex items-center gap-3 bg-piedra-50 p-2">
+                <li key={h.id} className={`pixel-suave flex items-center gap-3 bg-piedra-50 p-2 ${elevar}`}>
                   <span className="flex w-14 shrink-0 flex-col items-center border border-piedra-900 bg-marca-900 py-1 text-white">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-dorado-300">{h.dia.slice(0, 3)}</span>
                     <span className="font-titulo text-base font-semibold leading-tight">{h.hora}</span>
