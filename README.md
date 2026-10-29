@@ -1,6 +1,14 @@
-# Gestión de Iglesias
+# IglesiaPixel
 
-Aplicación web para administrar una iglesia con varias sedes: miembros, asistencia, eventos, ministerios, donaciones, comunicados, panel de indicadores, reportes y configuración. Proyecto académico.
+Sistema web para administrar iglesias con varias sedes: miembros, asistencia, eventos, ministerios, comunicados, donaciones, panel de indicadores, reportes y configuración. Tiene un diseño en pixel art hecho a partir de dibujos propios.
+
+> **Proyecto académico.** Todos los datos son de ejemplo: la "Iglesia Comunidad de Fe" es ficticia. Está hecho con Next.js y Supabase.
+
+## Diseño
+- Estilo pixel art sobrio, con tonos apagados, letra Fredoka en títulos y Nunito en el texto.
+- Cada vista tiene su encabezado con un fondo del interior de la iglesia y un dibujo propio.
+- Animaciones sutiles: el humanito que entra a la iglesia al iniciar sesión, el diálogo de Vivian que se escribe letra por letra, cifras que cuentan, barras que se llenan bloque por bloque y tarjetas que se elevan al pasar el cursor. Todas se apagan si el sistema pide reducir el movimiento.
+- Las imágenes están en `public/pixel/`.
 
 ## Estado
 | Fase | Contenido | Estado |
