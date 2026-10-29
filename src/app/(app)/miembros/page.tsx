@@ -2,7 +2,7 @@
 
 import { Pencil, Plus, Search } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Avatar, Boton, Campo, Contador, Encabezado, Entrada, Etiqueta, Modal, Pestanas, SinAcceso, Sprite, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
+import { Avatar, Boton, Campo, Contador, Encabezado, Entrada, Etiqueta, Modal, Papa, Pestanas, SinAcceso, Tabla, Tarjeta, td, th, Vacio } from "@/components/ui";
 import { fechaCorta } from "@/lib/formato";
 import { acceso } from "@/lib/permisos";
 import type { DatosMiembro } from "@/lib/repositorio/tipos";
@@ -73,7 +73,7 @@ export default function Miembros() {
         titulo="Miembros"
         descripcion={`La congregación de ${sede?.nombre ?? "tu sede"}`}
         acciones={puedeEditar && <Boton variante="dorado" onClick={() => abrir("nuevo")}><Plus size={16} /> Nuevo miembro</Boton>}
-        dibujo={<Congregacion />}
+        dibujo={<Papa alto={150} />}
       >
         <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
           {[
@@ -139,7 +139,7 @@ export default function Miembros() {
             ))}
           </tbody>
         </Tabla>
-        {cargando ? <Vacio>Cargando…</Vacio> : lista.length === 0 && <Vacio dibujo={<Sprite nombre="persona" ancho={28} />}>No hay miembros que coincidan con la búsqueda.</Vacio>}
+        {cargando ? <Vacio>Cargando…</Vacio> : lista.length === 0 && <Vacio dibujo={<Papa alto={72} />}>No hay miembros que coincidan con la búsqueda.</Vacio>}
       </Tarjeta>
 
       <Modal
@@ -160,13 +160,3 @@ export default function Miembros() {
   );
 }
 
-// Tres humanitos de pie sobre el pasto, de distinta estatura
-function Congregacion() {
-  return (
-    <div className="flex items-end gap-2 px-2">
-      <Sprite nombre="persona" ancho={36} />
-      <Sprite nombre="persona" ancho={46} />
-      <Sprite nombre="persona" ancho={32} />
-    </div>
-  );
-}

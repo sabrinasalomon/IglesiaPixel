@@ -94,9 +94,6 @@ export function Liston({ className }: { className?: string }) {
   return <span aria-hidden className={unir("liston pointer-events-none absolute top-0 w-2.5 bg-liston-600", className ?? "left-5 h-6")} />;
 }
 
-// Estrellas del cielo de los encabezados: posición en % y retraso del parpadeo
-const ESTRELLAS: [number, number, number][] = [[4, 18, 0], [16, 72, 0.6], [29, 26, 1.3], [44, 82, 0.3], [58, 14, 1.8], [67, 64, 0.9], [81, 30, 2.2]];
-
 export function Encabezado({
   titulo,
   descripcion,
@@ -114,19 +111,16 @@ export function Encabezado({
 }) {
   if (dibujo) {
     return (
-      <section className="pixel relative mb-6 flex items-end justify-between gap-6 overflow-hidden bg-marca-900 px-6 pt-6 text-white sm:px-8">
-        {ESTRELLAS.map(([x, y, retraso], i) => (
-          <span key={i} aria-hidden className="absolute h-1 w-1 animate-titilar bg-dorado-200" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${retraso}s` }} />
-        ))}
-        <div className="relative pb-8">
+      <section className="pixel relative mb-6 flex items-end justify-between gap-6 overflow-hidden bg-piedra-900 bg-[url(/pixel/fondo.jpg)] bg-cover bg-[center_8%] px-6 pt-6 text-white [image-rendering:pixelated] sm:px-8">
+        {/* Sombra a la izquierda para que el texto se lea sobre el fondo */}
+        <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-piedra-950/85 via-piedra-950/45 to-transparent" />
+        <div className="relative pb-6">
           <h1 className="font-titulo text-4xl font-semibold leading-tight">{titulo}</h1>
-          {descripcion && <p className="mt-1 text-marca-100">{descripcion}</p>}
+          {descripcion && <p className="mt-1 text-piedra-100">{descripcion}</p>}
           {children}
           {acciones && <div className="mt-5 flex flex-wrap gap-2">{acciones}</div>}
         </div>
-        <div className="relative z-10 hidden shrink-0 self-end pb-2 sm:block">{dibujo}</div>
-        {/* Franja de pasto donde se para el dibujo */}
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-3 border-t-2 border-olivo-300 bg-olivo-600" />
+        <div className="relative hidden shrink-0 self-end pb-3 sm:block">{dibujo}</div>
       </section>
     );
   }
@@ -269,6 +263,18 @@ export function Contador({ valor, formato = (n: number) => n.toLocaleString("es-
 export function Sprite({ nombre, ancho, className }: { nombre: "iglesia" | "cruz" | "biblia" | "persona"; ancho: number; className?: string }) {
   // eslint-disable-next-line @next/next/no-img-element -- imagen fija y pequeña, sin optimizar a propósito
   return <img src={`/pixel/${nombre}.png`} alt="" aria-hidden width={ancho} className={unir("sprite h-auto", className)} style={{ width: ancho }} />;
+}
+
+// El papa en pixel art, cambiando de pose. Es lo único que se mueve en los
+// encabezados; el fondo de la iglesia queda fijo.
+export function Papa({ alto = 120, className }: { alto?: number; className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={unir("block animate-papa bg-[url(/pixel/papa.png)] bg-[length:600%_100%] bg-[position:40%_0] bg-no-repeat [image-rendering:pixelated]", className)}
+      style={{ width: (alto * 65) / 120, height: alto }}
+    />
+  );
 }
 
 // Cuadrito con las iniciales; el color sale del nombre para que cada persona

@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Semana } from "@/components/semana";
-import { Contador, Etiqueta, Indicador, Indicadores, Liston, Sprite, Tarjeta } from "@/components/ui";
+import { Contador, Etiqueta, Indicador, Indicadores, Liston, Papa, Tarjeta } from "@/components/ui";
 import { fechaCorta, fechaLarga, mesCorto, mxn } from "@/lib/formato";
 import { puedeVer, veFinanzas } from "@/lib/permisos";
 import { useDatos } from "@/lib/store";
@@ -199,16 +199,14 @@ function ListaAvisos({ avisos, columnas }: { avisos: Anuncio[]; columnas: boolea
 // Portada del panel: cielo nocturno con la cruz que brilla a la derecha
 function Bienvenida({ nombre, fecha }: { nombre: string; fecha: string }) {
   return (
-    <section className="pixel relative mb-6 flex items-center justify-between gap-6 overflow-hidden bg-marca-900 px-6 py-6 text-white sm:px-8">
-      {[[6, 20], [18, 70], [34, 30], [52, 80], [63, 18], [76, 55]].map(([x, y], i) => (
-        <span key={i} aria-hidden className="absolute h-1 w-1 animate-titilar bg-dorado-200" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${i * 0.4}s` }} />
-      ))}
-      <div className="relative">
+    <section className="pixel relative mb-6 flex items-end justify-between gap-6 overflow-hidden bg-piedra-900 bg-[url(/pixel/fondo.jpg)] bg-cover bg-[center_8%] px-6 pt-6 text-white [image-rendering:pixelated] sm:px-8">
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-r from-piedra-950/85 via-piedra-950/45 to-transparent" />
+      <div className="relative pb-6">
         <p className="font-titulo text-sm uppercase tracking-wider text-dorado-300">{fecha}</p>
         <h1 className="mt-1 font-titulo text-4xl font-semibold leading-tight sm:text-5xl">Hola, {nombre}</h1>
-        <p className="mt-2 max-w-md text-marca-100">Este es el resumen de tu sede.</p>
+        <p className="mt-2 max-w-md text-piedra-100">Este es el resumen de tu sede.</p>
       </div>
-      <Sprite nombre="cruz" ancho={104} className="relative hidden shrink-0 animate-brillar sm:block" />
+      <Papa alto={130} className="relative hidden shrink-0 self-end mb-3 sm:block" />
     </section>
   );
 }
