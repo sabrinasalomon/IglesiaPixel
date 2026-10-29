@@ -20,6 +20,7 @@ export function PantallaAcceso({
   entrando = false,
   alEntrar,
   escena,
+  cielo = "bg-marca-950",
   children,
 }: {
   nombre: string;
@@ -31,11 +32,13 @@ export function PantallaAcceso({
   alEntrar?: () => void;
   /** Reemplaza la iglesia y el humanito por otra escena (la usa restablecer) */
   escena?: ReactNode;
+  /** Clases del fondo del cielo, para oscurecerlo en alguna pantalla */
+  cielo?: string;
   children: ReactNode;
 }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
-      <section className="relative hidden overflow-hidden bg-marca-950 px-12 pt-12 text-marca-50 lg:flex lg:flex-col xl:px-16">
+      <section className={`relative hidden overflow-hidden ${cielo} px-12 pt-12 text-marca-50 lg:flex lg:flex-col xl:px-16`}>
         {ESTRELLAS.map(([x, y, retraso], i) => (
           <span
             key={i}

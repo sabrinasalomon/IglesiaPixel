@@ -60,6 +60,8 @@ export default function Restablecer() {
       titulo="Define tu contraseña"
       subtitulo="Usa al menos 8 caracteres."
       escena={<Escena />}
+      // Noche más cerrada: casi negro arriba y azul profundo hacia el horizonte
+      cielo="bg-[linear-gradient(to_bottom,#04060d_0%,#070c1a_55%,#0d1830_100%)]"
     >
       {modo !== "demo" && !listo ? (
         <p className="text-sm text-piedra-600">Validando el enlace… Si no avanza, el enlace pudo haber expirado: solicita uno nuevo desde la pantalla de inicio de sesión.</p>
