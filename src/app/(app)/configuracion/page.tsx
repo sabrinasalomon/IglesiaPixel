@@ -86,7 +86,7 @@ export default function Configuracion() {
       )}
       <fieldset disabled={soloLectura} className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Tarjeta className="space-y-4 p-5">
-          <h2 className="font-semibold">Iglesia</h2>
+          <h2 className="font-titulo text-xl font-semibold">Iglesia</h2>
           <div className="flex items-center gap-4">
             <Logo url={general.logoUrl} tamano={64} />
             <input ref={archivo} type="file" accept="image/*" className="hidden" onChange={(e) => subirLogo(e.target.files?.[0])} />
@@ -101,7 +101,7 @@ export default function Configuracion() {
         </Tarjeta>
 
         <Tarjeta className="space-y-4 p-5">
-          <h2 className="font-semibold">Datos de contacto · {sede.nombre}</h2>
+          <h2 className="font-titulo text-xl font-semibold">Datos de contacto · {sede.nombre}</h2>
           <Campo etiqueta="Dirección"><Entrada value={contacto.direccion} onChange={(e) => setContacto({ ...contacto, direccion: e.target.value })} /></Campo>
           <div className="grid gap-4 sm:grid-cols-2">
             <Campo etiqueta="Teléfono"><Entrada value={contacto.telefono} onChange={(e) => setContacto({ ...contacto, telefono: e.target.value })} /></Campo>
@@ -110,22 +110,29 @@ export default function Configuracion() {
         </Tarjeta>
 
         <Tarjeta className="p-5 lg:col-span-2">
-          <h2 className="mb-3 font-semibold">Horarios habituales de reunión · {sede.nombre}</h2>
-          <ul className="divide-y divide-piedra-100 border border-piedra-200">
-            {horarios.map((h) => (
-              <li key={h.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                <span><strong>{h.dia}</strong> · {h.hora} · {h.tipo}</span>
-                {!soloLectura && (
-                  <button type="button" aria-label="Quitar horario" className="text-piedra-400 hover:text-liston-600" onClick={() => quitarHorario(h.id)}>
-                    <Trash2 size={15} />
-                  </button>
-                )}
-              </li>
-            ))}
-            {horarios.length === 0 && <li className="px-3 py-2 text-sm text-piedra-500">Sin horarios registrados.</li>}
+          <h2 className="mb-3 font-titulo text-xl font-semibold">Horarios habituales de reunión · {sede.nombre}</h2>
+          {/* Cada horario como una ficha con el día en un cuadrito, ordenados de lunes a domingo */}
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {[...horarios]
+              .sort((a, b) => DIAS.indexOf(a.dia) - DIAS.indexOf(b.dia) || a.hora.localeCompare(b.hora))
+              .map((h) => (
+                <li key={h.id} className="flex items-center gap-3 border-2 border-piedra-200 bg-white p-2 text-sm">
+                  <span className="flex w-14 shrink-0 flex-col items-center border-2 border-piedra-900 bg-marca-900 py-1 text-white">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-dorado-300">{h.dia.slice(0, 3)}</span>
+                    <span className="font-titulo text-base font-semibold leading-tight">{h.hora}</span>
+                  </span>
+                  <span className="flex-1 font-medium text-piedra-900">{h.tipo}</span>
+                  {!soloLectura && (
+                    <button type="button" aria-label="Quitar horario" className="p-1 text-piedra-400 hover:text-liston-600" onClick={() => quitarHorario(h.id)}>
+                      <Trash2 size={15} />
+                    </button>
+                  )}
+                </li>
+              ))}
+            {horarios.length === 0 && <li className="text-sm text-piedra-500">Sin horarios registrados.</li>}
           </ul>
           {!soloLectura && (
-            <div className="mt-3 grid gap-2 sm:grid-cols-[140px_120px_1fr_auto]">
+            <div className="mt-4 grid gap-2 border-t-2 border-piedra-200 pt-4 sm:grid-cols-[140px_120px_1fr_auto]">
               <Selector value={nuevo.dia} onChange={(e) => setNuevo({ ...nuevo, dia: e.target.value })}>
                 {DIAS.map((d) => <option key={d}>{d}</option>)}
               </Selector>
