@@ -116,14 +116,14 @@ export default function Configuracion() {
             {[...horarios]
               .sort((a, b) => DIAS.indexOf(a.dia) - DIAS.indexOf(b.dia) || a.hora.localeCompare(b.hora))
               .map((h) => (
-                <li key={h.id} className="flex items-center gap-3 border-2 border-piedra-200 bg-white p-2 text-sm">
+                <li key={h.id} className="flex items-center gap-3 border border-piedra-300 bg-white p-2 text-sm">
                   <span className="flex w-14 shrink-0 flex-col items-center border-2 border-piedra-900 bg-marca-900 py-1 text-white">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-dorado-300">{h.dia.slice(0, 3)}</span>
                     <span className="font-titulo text-base font-semibold leading-tight">{h.hora}</span>
                   </span>
                   <span className="flex-1 font-medium text-piedra-900">{h.tipo}</span>
                   {!soloLectura && (
-                    <button type="button" aria-label="Quitar horario" className="p-1 text-piedra-400 hover:text-liston-600" onClick={() => quitarHorario(h.id)}>
+                    <button type="button" aria-label="Quitar horario" className="p-1.5 text-piedra-400 transition-colors hover:bg-liston-50 hover:text-liston-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-liston-300" title="Quitar horario" onClick={() => quitarHorario(h.id)}>
                       <Trash2 size={15} />
                     </button>
                   )}
@@ -132,13 +132,14 @@ export default function Configuracion() {
             {horarios.length === 0 && <li className="text-sm text-piedra-500">Sin horarios registrados.</li>}
           </ul>
           {!soloLectura && (
-            <div className="mt-4 grid gap-2 border-t-2 border-piedra-200 pt-4 sm:grid-cols-[140px_120px_1fr_auto]">
-              <Selector value={nuevo.dia} onChange={(e) => setNuevo({ ...nuevo, dia: e.target.value })}>
+            // En pantallas chicas: día y hora en una fila, tipo y botón en otra
+            <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-piedra-200 pt-4">
+              <Selector aria-label="Día" className="h-10 w-[calc(50%-6px)]! md:w-40!" value={nuevo.dia} onChange={(e) => setNuevo({ ...nuevo, dia: e.target.value })}>
                 {DIAS.map((d) => <option key={d}>{d}</option>)}
               </Selector>
-              <Entrada type="time" value={nuevo.hora} onChange={(e) => setNuevo({ ...nuevo, hora: e.target.value })} />
-              <Entrada placeholder="Tipo de reunión" value={nuevo.tipo} onChange={(e) => setNuevo({ ...nuevo, tipo: e.target.value })} />
-              <Boton type="button" onClick={agregarHorario}><Plus size={16} /> Agregar</Boton>
+              <Entrada aria-label="Hora" className="h-10 w-[calc(50%-6px)]! md:w-36!" type="time" value={nuevo.hora} onChange={(e) => setNuevo({ ...nuevo, hora: e.target.value })} />
+              <Entrada aria-label="Tipo de reunión" className="h-10 min-w-0 flex-1 basis-40" placeholder="Tipo de reunión" value={nuevo.tipo} onChange={(e) => setNuevo({ ...nuevo, tipo: e.target.value })} />
+              <Boton type="button" className="h-10 shrink-0" onClick={agregarHorario}><Plus size={16} /> Agregar</Boton>
             </div>
           )}
         </Tarjeta>

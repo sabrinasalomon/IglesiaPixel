@@ -142,9 +142,10 @@ body {
   border: 3px solid var(--color-piedra-900);
   box-shadow: 4px 4px 0 0 var(--color-piedra-900);
 }
+/* Tarjetas: borde fino y sombra corta, para no recargar la pantalla */
 .pixel-suave {
-  border: 2px solid var(--color-piedra-800);
-  box-shadow: 3px 3px 0 0 rgb(36 28 21 / 0.85);
+  border: 1px solid var(--color-piedra-800);
+  box-shadow: 2px 2px 0 0 rgb(36 28 21 / 0.8);
 }
 
 /* Las imágenes en pixel art se escalan sin suavizar */

@@ -81,7 +81,7 @@ export default function Sedes() {
                     ["Miembros", db.miembros.filter((m) => m.sedeId === s.id && m.activo).length],
                     ["Ministerios", db.ministerios.filter((m) => m.sedeId === s.id).length],
                   ].map(([texto, valor]) => (
-                    <div key={texto} className="border-2 border-piedra-200 bg-piedra-50 px-3 py-2">
+                    <div key={texto} className="border border-piedra-300 bg-piedra-50 px-3 py-2">
                       <dt className="text-xs font-bold uppercase tracking-wider text-piedra-500">{texto}</dt>
                       <dd className="font-titulo text-2xl font-semibold text-piedra-900">{valor}</dd>
                     </div>
