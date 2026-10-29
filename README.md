@@ -3,7 +3,6 @@
 Aplicación web para administrar una iglesia con varias sedes: miembros, asistencia, eventos, ministerios, donaciones, comunicados, panel de indicadores, reportes y configuración. Proyecto académico.
 
 ## Estado
-
 | Fase | Contenido | Estado |
 | --- | --- | --- |
 | 0 | Prototipo navegable con datos de ejemplo | Listo |
@@ -12,27 +11,22 @@ Aplicación web para administrar una iglesia con varias sedes: miembros, asisten
 | 3 | Donaciones, dashboard, reportes PDF y Excel, despliegue | Listo |
 
 La aplicación tiene dos modos:
-
 - **Demostración** (sin variables de Supabase): datos ficticios en memoria de la "Iglesia Comunidad de Fe" con 3 sedes. Muestra todos los módulos; los cambios se pierden al recargar.
 - **Supabase** (con `.env.local`): datos reales y sesión real. Todos los módulos guardan en la base de datos y cada rol solo ve lo que le corresponde.
 
 ## Cómo ejecutarlo
-
 Requiere Node.js 20 o superior.
-
 ```bash
 npm install
 npm run dev
 ```
 
 Abre http://localhost:3000.
-
 - **Modo demostración:** entra con uno de los botones de rol (Administrador, Pastor, Secretario, Tesorero, Coordinador o Miembro).
 - **Modo Supabase:** sigue la guía [docs/SUPABASE.md](docs/SUPABASE.md) para crear el proyecto, las tablas y el primer administrador.
 - **Publicar en internet:** sigue [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md) para subir la aplicación a Vercel.
 
 ## Qué ve cada rol
-
 | Módulo | Administrador | Pastor | Secretario | Tesorero | Coordinador | Miembro |
 | --- | --- | --- | --- | --- | --- | --- |
 | Sedes | Total | — | — | — | — | — |
@@ -50,7 +44,6 @@ Abre http://localhost:3000.
 El administrador puede cambiar de sede desde la barra superior; los demás roles trabajan solo con su sede.
 
 ## Estructura
-
 ```
 src/
   app/
@@ -75,7 +68,6 @@ supabase/
 ```
 
 ## Tecnología
-
 Next.js 15 (React 19, TypeScript), Tailwind CSS 4, Recharts para gráficas, lucide-react para íconos y Supabase (PostgreSQL, autenticación, almacenamiento y políticas de seguridad por sede).
 
 Montos en pesos mexicanos (MXN) y fechas en formato es-MX.
