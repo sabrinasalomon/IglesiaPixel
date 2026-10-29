@@ -206,7 +206,7 @@ function Bienvenida({ nombre, fecha }: { nombre: string; fecha: string }) {
         <h1 className="mt-1 font-titulo text-4xl font-semibold leading-tight sm:text-5xl">Hola, {nombre}</h1>
         <p className="mt-2 max-w-md text-piedra-100">Este es el resumen de tu sede.</p>
       </div>
-      <Papa alto={130} className="relative hidden shrink-0 self-end mb-3 sm:block" />
+      <Papa className="relative hidden shrink-0 self-end mb-3 sm:block" />
     </section>
   );
 }

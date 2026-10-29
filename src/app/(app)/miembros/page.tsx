@@ -73,7 +73,7 @@ export default function Miembros() {
         titulo="Miembros"
         descripcion={`La congregación de ${sede?.nombre ?? "tu sede"}`}
         acciones={puedeEditar && <Boton variante="dorado" onClick={() => abrir("nuevo")}><Plus size={16} /> Nuevo miembro</Boton>}
-        dibujo={<Papa alto={150} />}
+        dibujo={<Papa />}
       >
         <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
           {[
@@ -139,7 +139,7 @@ export default function Miembros() {
             ))}
           </tbody>
         </Tabla>
-        {cargando ? <Vacio>Cargando…</Vacio> : lista.length === 0 && <Vacio dibujo={<Papa alto={72} />}>No hay miembros que coincidan con la búsqueda.</Vacio>}
+        {cargando ? <Vacio>Cargando…</Vacio> : lista.length === 0 && <Vacio dibujo={<Papa />}>No hay miembros que coincidan con la búsqueda.</Vacio>}
       </Tarjeta>
 
       <Modal
