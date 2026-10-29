@@ -265,14 +265,14 @@ export function Sprite({ nombre, ancho, className }: { nombre: "iglesia" | "cruz
   return <img src={`/pixel/${nombre}.png`} alt="" aria-hidden width={ancho} className={unir("sprite h-auto", className)} style={{ width: ancho }} />;
 }
 
-// El papa en pixel art, cambiando de pose. Se ve nítido a 131 px de alto (su
-// tamaño real) o al doble; otras medidas deforman los cuadritos. Es lo único que se mueve en los
-// encabezados; el fondo de la iglesia queda fijo.
+// El papa en pixel art, quieto y de frente (cuadro 2 de la hoja de poses).
+// Se ve nítido a 131 px de alto (su tamaño real) o al doble; otras medidas
+// deforman los cuadritos.
 export function Papa({ alto = 131, className }: { alto?: number; className?: string }) {
   return (
     <span
       aria-hidden
-      className={unir("block animate-papa bg-[url(/pixel/papa.png)] bg-[length:500%_100%] bg-[position:50%_0] bg-no-repeat [image-rendering:pixelated]", className)}
+      className={unir("block bg-[url(/pixel/papa.png)] bg-[length:500%_100%] bg-[position:50%_0] bg-no-repeat [image-rendering:pixelated]", className)}
       style={{ width: (alto * 71) / 131, height: alto }}
     />
   );

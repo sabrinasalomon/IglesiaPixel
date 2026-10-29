@@ -71,7 +71,6 @@
   --animate-subir: subir 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-caminar: caminar 2.6s linear forwards;
   --animate-paso: paso 0.32s steps(1) infinite;
-  --animate-papa: papa 7s steps(1) infinite;
 
   @keyframes aparecer {
     from { opacity: 0; }
@@ -114,24 +113,6 @@
   @keyframes paso {
     0%, 100% { transform: translateY(0) rotate(-3deg); }
     50% { transform: translateY(-4px) rotate(3deg); }
-  }
-  /* El papa cambia de pose: parpadea, habla, mira de lado y saluda. La hoja
-     /pixel/papa.png tiene 5 cuadros de 71 x 131 a tamaño real: 0 ojos
-     cerrados, 1 habla, 2 de frente, 3 mira de lado, 4 saluda. */
-  @keyframes papa {
-    0% { background-position-x: 50%; }
-    16% { background-position-x: 0%; }
-    19% { background-position-x: 50%; }
-    32% { background-position-x: 25%; }
-    36% { background-position-x: 50%; }
-    40% { background-position-x: 25%; }
-    44% { background-position-x: 50%; }
-    48% { background-position-x: 25%; }
-    52% { background-position-x: 50%; }
-    64% { background-position-x: 100%; transform: translateY(-2px); }
-    70% { background-position-x: 100%; transform: translateY(0); }
-    76% { background-position-x: 75%; }
-    88% { background-position-x: 50%; }
   }
   /* Entrada de cada bloque de la página, uno tras otro */
   @keyframes subir {
