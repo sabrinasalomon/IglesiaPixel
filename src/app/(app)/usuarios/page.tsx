@@ -2,7 +2,7 @@
 
 import { Pencil, Plus } from "lucide-react";
 import { useCallback, useState } from "react";
-import { Boton, Campo, Dibujo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, Vacio, td, th } from "@/components/ui";
+import { Avatar, Boton, Campo, Contador, Dibujo, Encabezado, Entrada, Etiqueta, Modal, Selector, SinAcceso, Tabla, Tarjeta, Vacio, td, th } from "@/components/ui";
 import { nombreRol, ROLES } from "@/lib/catalogos";
 import { acceso } from "@/lib/permisos";
 import type { DatosInvitacion } from "@/lib/repositorio/tipos";
@@ -63,7 +63,20 @@ export default function Usuarios() {
         }
         dibujo={<Dibujo nombre="llaves" />}
         fondo="/pixel/fondo-usuarios.jpg"
-      />
+      >
+        <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
+          {[
+            ["Cuentas", usuarios.length],
+            ["Activas", usuarios.filter((u) => u.activo).length],
+            ["Pendientes o bloqueadas", usuarios.filter((u) => !u.activo).length],
+          ].map(([texto, valor]) => (
+            <div key={texto}>
+              <dt className="text-xs font-bold uppercase tracking-wider text-dorado-300">{texto}</dt>
+              <dd className="font-titulo text-3xl font-semibold"><Contador valor={valor as number} /></dd>
+            </div>
+          ))}
+        </dl>
+      </Encabezado>
       {aviso && <p className="mb-4 bg-olivo-50 px-3 py-2 text-sm text-olivo-700">{aviso}</p>}
       {error && <p className="mb-4 bg-liston-50 px-3 py-2 text-sm text-liston-700">{error}</p>}
       <Tarjeta>
@@ -73,8 +86,13 @@ export default function Usuarios() {
           </thead>
           <tbody>
             {usuarios.map((u) => (
-              <tr key={u.id}>
-                <td className={`${td} font-medium text-piedra-900`}>{u.nombre}</td>
+              <tr key={u.id} className={u.activo ? "" : "bg-piedra-50 text-piedra-500"}>
+                <td className={`${td} font-medium text-piedra-900`}>
+                  <span className="flex items-center gap-2 whitespace-nowrap">
+                    <Avatar nombre={u.nombre} /> {u.nombre}
+                    {u.id === usuario!.id && <Etiqueta>Tú</Etiqueta>}
+                  </span>
+                </td>
                 <td className={td}>{u.correo}</td>
                 <td className={td}><Etiqueta tono="marca">{nombreRol(u.rol)}</Etiqueta></td>
                 <td className={td}>{u.rol === "administrador" ? "Todas" : nombreSede(u.sedeId)}</td>
